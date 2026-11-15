@@ -71,7 +71,7 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
 - **Còn / Vượt (chủ dự án chốt 2026-11-16):** dòng dưới khối Calo so với **mục tiêu** ("Còn 1.656 kcal", "Vượt 344 kcal"), màu chữ trung tính. Chỉ khi vượt **ngưỡng trên** (calo 4.000; đạm, natri, đường theo ngưỡng trên trong Goals.md) thì: giá trị và vạch chuyển màu `error`, "!" trong cột lề, thêm dòng "Vượt ngưỡng 350 mg".
 - **Thanh ngày:** nằm trong trang vở (không dùng app bar riêng): "‹" · ngày `dd/MM/yyyy` (bấm mở `DatePickerDialog` M3 của `@expo/ui`, ngày sau hôm nay bị vô hiệu) · "›" (khoá ở hôm nay) · chip "Hôm nay" khi xem ngày khác. Vùng chạm ≥ 48 dp.
 - **Khối Calo:** nhãn "Calo" · số đã nạp cỡ Display màu mực tím / mục tiêu cỡ Title · vạch dung lượng dài cố định, cao 12 dp, nền `surfaceContainer`, phần đã nạp màu chất (đầy tối đa khi đạt mục tiêu).
-- **Hàng chất:** nhãn · "25,0 / 120,0 g" cỡ Title màu chất · vạch mảnh 4 dp.
+- **Hàng chất:** nhãn · "25 / 112 g" (đã nạp tối đa 1 chữ số thập phân, như "25,3 / 112 g"; mục tiêu số nguyên) cỡ Title màu chất · vạch mảnh 4 dp.
 - **Danh sách món:** tiêu đề "Món đã ăn" · mỗi dòng ≥ 48 dp: tên (tối đa 2 dòng) và kcal căn phải, dòng phụ "Đạm X g · Natri Y mg · Đường Z g" màu `onSurfaceVariant`; đường kẻ mảnh `outlineVariant` giữa các dòng như dòng kẻ vở.
 - **Trạng thái:** skeleton là các khối `surfaceContainer` đúng hình bố cục (không chạy hiệu ứng); lỗi tải: "Không tải được dữ liệu." + nút "Thử lại".
 - **Chưa làm ở #16:** FAB "+", nút "Thêm món" và sheet (#17); 3 dòng Nạp/Tiêu hao/Ròng (Workout, 0.2.0).

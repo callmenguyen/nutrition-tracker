@@ -55,7 +55,7 @@ export function useMealsForDay(day: Day) {
   });
 }
 
-/** Today's date, refreshed when the app returns to the foreground (e.g. after midnight). */
+/** Today's date, refreshed at local midnight and when the app returns to the foreground. */
 export function useToday(): Day {
   const [today, setToday] = useState(() => todayLocal());
   useEffect(() => {
@@ -64,5 +64,18 @@ export function useToday(): Day {
     });
     return () => sub.remove();
   }, []);
+  useEffect(() => {
+    const now = new Date();
+    const midnight = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+    );
+    const timer = setTimeout(
+      () => setToday(todayLocal()),
+      midnight.getTime() - now.getTime() + 1000,
+    );
+    return () => clearTimeout(timer);
+  }, [today]);
   return today;
 }

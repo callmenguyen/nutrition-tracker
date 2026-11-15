@@ -5,6 +5,7 @@ import {
   formatDayVi,
   fromPickerDate,
   isAfterDay,
+  localDateOf,
   toPickerDateIso,
   todayLocal,
 } from "@/domain/day";
@@ -29,6 +30,14 @@ describe("day (ADR-005: local calendar day as YYYY-MM-DD)", () => {
     expect(isAfterDay("2026-11-17", "2026-11-16")).toBe(true);
     expect(isAfterDay("2026-11-16", "2026-11-16")).toBe(false);
     expect(isAfterDay("2025-12-31", "2026-01-01")).toBe(false);
+  });
+
+  it("gives the local midnight of a day", () => {
+    const d = localDateOf("2026-11-16");
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([
+      2026, 10, 16, 0,
+    ]);
+    expect(todayLocal(d)).toBe("2026-11-16");
   });
 
   it("formats as dd/MM/yyyy", () => {

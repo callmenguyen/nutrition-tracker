@@ -1,6 +1,6 @@
 import { DatePickerDialog, Host } from "@expo/ui/jetpack-compose";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,6 +15,7 @@ import {
   formatDayVi,
   fromPickerDate,
   isAfterDay,
+  localDateOf,
   toPickerDateIso,
 } from "@/domain/day";
 import { formatInt, formatUpTo1 } from "@/domain/format";
@@ -78,6 +79,9 @@ function DayBar({
   const { colors } = useTheme();
   const [picking, setPicking] = useState(false);
   const atToday = !isAfterDay(today, day);
+  // From the same `today` as "›", and stable across renders: a new Date each render would rebuild
+  // the native picker state and drop a selection in progress.
+  const pickerEnd = useMemo(() => localDateOf(today), [today]);
   const label = formatDayVi(day);
 
   return (
@@ -126,7 +130,7 @@ function DayBar({
           <DatePickerDialog
             initialDate={toPickerDateIso(day)}
             // Local Date: @expo/ui maps it to the device's calendar day, so later days are disabled.
-            selectableDates={{ end: new Date() }}
+            selectableDates={{ end: pickerEnd }}
             confirmButtonLabel="Chọn"
             dismissButtonLabel="Hủy"
             showVariantToggle={false}

@@ -437,9 +437,13 @@ export function createMockBackend(): { server: Server } {
         .filter((row) => filters.every(([k, v]) => String(row[k]) === v))
         .sort((a, b) => {
           for (const [col, dir] of order) {
-            const x = String(a[col]);
-            const y = String(b[col]);
-            if (x !== y) return x < y ? -dir : dir;
+            const [x, y] = [a[col], b[col]];
+            if (x === y) continue;
+            const less =
+              typeof x === "number" && typeof y === "number"
+                ? x < y
+                : String(x) < String(y);
+            return less ? -dir : dir;
           }
           return 0;
         });

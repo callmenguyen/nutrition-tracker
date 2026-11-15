@@ -132,10 +132,33 @@ describe("TodayView", () => {
     expect(picker.props.initialDate).toBe("2026-11-04T00:00:00.000Z");
     expect(picker.props.selectableDates.end).toBeInstanceOf(Date);
     expect(picker.props.selectableDates.start).toBeUndefined();
+    // Last selectable day = the `today` prop (same source as "›"), as a local midnight.
+    const end: Date = picker.props.selectableDates.end;
+    expect(end.getTime()).toBe(new Date(2026, 10, 16).getTime());
 
     await fireEvent(picker, "onDateSelected", new Date(Date.UTC(2026, 10, 1)));
     expect(onChangeDay).toHaveBeenLastCalledWith("2026-11-01");
     expect(screen.queryByTestId("date-picker")).toBeNull();
+  });
+
+  it("keeps the picker's selectable range stable across re-renders", async () => {
+    const onChangeDay = jest.fn();
+    const ui = (state: TodayState) => (
+      <TodayView
+        day={TODAY}
+        today={TODAY}
+        onChangeDay={onChangeDay}
+        state={state}
+      />
+    );
+    const { rerender } = await render(ui({ kind: "loading" }));
+    await fireEvent.press(screen.getByTestId("today-date"));
+    const before = screen.getByTestId("date-picker").props.selectableDates.end;
+    // Data arriving while the dialog is open must not rebuild the native picker state.
+    await rerender(ui({ kind: "ready", meals: [], targets }));
+    expect(screen.getByTestId("date-picker").props.selectableDates.end).toBe(
+      before,
+    );
   });
 
   it("ignores a picked day after today", async () => {

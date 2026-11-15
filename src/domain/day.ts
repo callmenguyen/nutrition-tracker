@@ -16,6 +16,12 @@ export function todayLocal(now: Date = new Date()): Day {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
+/** Local midnight of a day, for APIs that take a local Date (e.g. DatePicker selectableDates). */
+export function localDateOf(day: Day): Date {
+  const [y, m, d] = parts(day);
+  return new Date(y, m - 1, d);
+}
+
 /** Shifts a day by n calendar days (UTC arithmetic, so no DST surprises). */
 export function addDays(day: Day, n: number): Day {
   const [y, m, d] = parts(day);

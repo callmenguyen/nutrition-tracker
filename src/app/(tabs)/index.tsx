@@ -14,18 +14,20 @@ export default function TodayScreen() {
   const meals = useMealsForDay(day);
   const targets = useTargets();
 
-  const state: TodayState =
-    meals.isError || targets.isError
-      ? {
-          kind: "error",
-          onRetry: () => {
-            void meals.refetch();
-            targets.refetch();
-          },
-        }
-      : meals.data && targets.targets
-        ? { kind: "ready", meals: meals.data, targets: targets.targets }
-        : { kind: "loading" };
+  // A failed background refetch keeps showing the data already loaded.
+  const failed =
+    (meals.isError && !meals.data) || (targets.isError && !targets.targets);
+  const state: TodayState = failed
+    ? {
+        kind: "error",
+        onRetry: () => {
+          void meals.refetch();
+          targets.refetch();
+        },
+      }
+    : meals.data && targets.targets
+      ? { kind: "ready", meals: meals.data, targets: targets.targets }
+      : { kind: "loading" };
 
   return (
     <TodayView
