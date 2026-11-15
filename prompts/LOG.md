@@ -240,3 +240,8 @@ Mẫu một mục:
   - Sửa link người đọc bấm vào: `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/config.yml`.
   - Giữ nguyên: package Android `io.github.antialberteinstein.nutritiontracker` (đổi là thành app khác), project EAS, ADR đã chấp nhận, `docs/IdeaBrief.md` và các mục cũ trong LOG (ghi lịch sử; GitHub tự chuyển hướng link cũ), `LICENSE`.
 - **Kết quả:** PR `chore/repo-transfer-links`.
+
+## 2026-11-15 · `Đổi antialberteinstein thành Nhat Nguyen` — tên chủ dự án
+- **Yêu cầu:** Ghi tên chủ dự án là "Nhat Nguyen" thay cho tên tài khoản GitHub cũ.
+- **Quyết định:** Đổi ở `LICENSE` (người giữ bản quyền) và `docs/IdeaBrief.md` (người quyết định). Giữ nguyên package Android, link, ADR đã chấp nhận và các mục cũ trong LOG.
+- **Kết quả:** PR `chore/license-holder`.
