@@ -232,3 +232,11 @@ Mẫu một mục:
   - Test cuộn tới nút trước khi đọc trạng thái hoặc bấm, và chờ cuộn dừng hẳn.
   - Kết quả trên máy thật (Supabase cloud): 7/7 test không gửi email đạt; TC-E2E-01 và TC-E2E-07 chưa chạy (cần địa chỉ email nhận được thư).
 - **Kết quả:** PR `fix/12-unmatched-route`.
+
+## 2026-11-15 · `Đã chuyển qua https://github.com/callmenguyen/nutrition-tracker` — chuyển repo
+- **Yêu cầu:** Chủ dự án đã chuyển repo sang `callmenguyen/nutrition-tracker`; cập nhật repo cho khớp.
+- **Quyết định:**
+  - Đổi remote `origin` ở máy dev sang repo mới.
+  - Sửa link người đọc bấm vào: `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/config.yml`.
+  - Giữ nguyên: package Android `io.github.antialberteinstein.nutritiontracker` (đổi là thành app khác), project EAS, ADR đã chấp nhận, `docs/IdeaBrief.md` và các mục cũ trong LOG (ghi lịch sử; GitHub tự chuyển hướng link cũ), `LICENSE`.
+- **Kết quả:** PR `chore/repo-transfer-links`.
