@@ -30,7 +30,7 @@ REPO_ROOT = E2E_DIR.parent.parent
 CONFIG_PATH = Path(os.environ.get("E2E_CONFIG", E2E_DIR / "config.json"))
 REPORTS_DIR = Path(os.environ.get("E2E_REPORTS_DIR", REPO_ROOT / "reports"))
 STARTUP_TIMEOUT = 90  # seconds for the first screen after install (bundle download included)
-MOCK_URL = os.environ.get("E2E_MOCK_URL", "http://127.0.0.1:54321")
+MOCK_URL = os.environ.get("E2E_MOCK_URL", "http://127.0.0.1:54399")
 # Created fresh in the mock backend for every run: confirmed email, no profile yet.
 TEST_EMAIL = "e2e-user@example.com"
 TEST_PASSWORD = "e2e-password-1"
@@ -76,6 +76,11 @@ def mock_backend():
     try:
         mock_api("POST", "/reset")
         mock_api("POST", "/users", {"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    except urllib.error.HTTPError as exc:  # reachable, but not the mock this suite expects
+        pytest.exit(
+            f"Mock backend at {MOCK_URL} answered {exc.code} on {exc.url}. Stop the old mock and rerun run-test.sh.",
+            returncode=2,
+        )
     except (urllib.error.URLError, OSError) as exc:
         pytest.exit(
             f"Mock backend at {MOCK_URL} is not reachable ({exc}). Run E2E through run-test.sh (ADR-016).",

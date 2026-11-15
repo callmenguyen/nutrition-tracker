@@ -28,8 +28,8 @@
 
   Không cần Docker hay Supabase cloud cho E2E (ADR-016). Node phải từ 22.18 trở lên để chạy mock backend.
 - **Backend:** mock backend Node.js trong bộ nhớ, `e2e/mock-backend/server.ts` (ADR-016).
-  - `run-test.sh` bật mock ở cổng 54321 (đổi bằng `MOCK_BACKEND_PORT`), làm `adb reverse tcp:54321 tcp:54321`, ghi log vào `reports/mock-backend.log`, và tắt mock khi xong. Nếu đã có mock chạy ở cổng đó thì dùng lại.
-  - `run-metro.sh` trỏ app vào `http://127.0.0.1:54321` với anon key giả, ưu tiên hơn `.env`.
+  - `run-test.sh` bật mock ở cổng 54399 (đổi bằng `MOCK_BACKEND_PORT`; khác cổng 54321 của Supabase local để chạy song song được), làm `adb reverse tcp:54399 tcp:54399`, ghi log vào `reports/mock-backend.log`, và tắt mock khi xong. Nếu đã có mock chạy ở cổng đó thì dùng lại.
+  - `run-metro.sh` trỏ app vào `http://127.0.0.1:54399` với anon key giả, ưu tiên hơn `.env`.
   - Đầu mỗi lượt, `conftest.py` reset mock và tạo tài khoản test `e2e-user@example.com` (đã xác nhận, chưa có hồ sơ). Không cần tạo tài khoản bằng tay.
   - Email không được gửi thật: mock lưu vào `outbox`, test đọc qua `GET /__test/outbox?email=`.
   - Mock chỉ giả lập phần API mà app đang gọi; gọi tới phần chưa có thì nhận `501` (xem `mock-backend.log`). Tính năng mới gọi bảng hay RPC mới phải thêm vào mock trong cùng PR.

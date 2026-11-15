@@ -212,7 +212,11 @@ describe("password reset", () => {
     const [mail] = await outbox("user@example.com");
     expect(mail.type).toBe("recovery");
     const code = await codeFromLink(mail.link);
+    // The app enters "Đặt mật khẩu mới" on this event (auth-provider.tsx).
+    const events: string[] = [];
+    client.auth.onAuthStateChange((event) => void events.push(event));
     expect((await client.auth.exchangeCodeForSession(code)).error).toBeNull();
+    expect(events).toContain("PASSWORD_RECOVERY");
 
     const same = await client.auth.updateUser({ password: "password-1" });
     expect(same.error?.code).toBe("same_password");

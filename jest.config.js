@@ -16,5 +16,9 @@ module.exports = {
       testMatch: ["<rootDir>/e2e/mock-backend/__tests__/**/*.test.ts"],
     },
   ],
-  collectCoverageFrom: ["src/domain/**/*.ts", "src/schemas/**/*.ts"],
+  collectCoverageFrom: [
+    "src/domain/**/*.ts",
+    "src/schemas/**/*.ts",
+    "!**/__tests__/**",
+  ],
 };

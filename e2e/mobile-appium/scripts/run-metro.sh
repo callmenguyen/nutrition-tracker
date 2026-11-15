@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT"
 
 # The phone reaches 127.0.0.1:<port> on this machine through `adb reverse` (run-test.sh).
-export EXPO_PUBLIC_SUPABASE_URL="http://127.0.0.1:${MOCK_BACKEND_PORT:-54321}"
+export EXPO_PUBLIC_SUPABASE_URL="http://127.0.0.1:${MOCK_BACKEND_PORT:-54399}"
 export EXPO_PUBLIC_SUPABASE_ANON_KEY="mock-anon-key"
 echo "[run-metro] App dùng mock backend $EXPO_PUBLIC_SUPABASE_URL (ADR-016)"
 

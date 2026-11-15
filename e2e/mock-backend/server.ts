@@ -8,7 +8,7 @@
  * boundary: it listens on 127.0.0.1 only and its JWT secret is public. Routes that are not
  * mocked answer 501, so a test that reaches one fails loudly instead of passing by accident.
  *
- * Run: node e2e/mock-backend/server.ts   (port: MOCK_BACKEND_PORT, default 54321)
+ * Run: node e2e/mock-backend/server.ts   (port: MOCK_BACKEND_PORT, default 54399)
  */
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import {
@@ -536,7 +536,7 @@ export function createMockBackend(): { server: Server } {
 }
 
 if (process.argv[1]?.replaceAll("\\", "/").endsWith("mock-backend/server.ts")) {
-  const port = Number(process.env.MOCK_BACKEND_PORT ?? 54321);
+  const port = Number(process.env.MOCK_BACKEND_PORT ?? 54399);
   createMockBackend().server.listen(port, "127.0.0.1", () => {
     console.log(`[mock-backend] listening on http://127.0.0.1:${port}`);
   });

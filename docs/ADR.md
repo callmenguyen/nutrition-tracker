@@ -469,7 +469,7 @@ scripts/
 
 **Quyết định.** Phương án 3. Jest và pgTAP giữ nguyên. **Không giữ chế độ chạy E2E trên cloud.**
 
-- **Vị trí và công nghệ:** `e2e/mock-backend/server.ts`, TypeScript chạy thẳng bằng Node (type stripping, Node ≥ 22.18). Chỉ dùng `node:http` và `node:crypto`, không thêm dependency. Server chỉ lắng nghe trên `127.0.0.1` (cổng `MOCK_BACKEND_PORT`, mặc định 54321). JWT ký bằng một khoá công khai trong mã: mock không phải ranh giới bảo mật.
+- **Vị trí và công nghệ:** `e2e/mock-backend/server.ts`, TypeScript chạy thẳng bằng Node (type stripping, Node ≥ 22.18). Chỉ dùng `node:http` và `node:crypto`, không thêm dependency. Server chỉ lắng nghe trên `127.0.0.1` (cổng `MOCK_BACKEND_PORT`, mặc định 54399). JWT ký bằng một khoá công khai trong mã: mock không phải ranh giới bảo mật.
 - **Phạm vi API (đúng phần app đang gọi lúc viết ADR):**
   - Auth (`/auth/v1`): `signup`, `token` (`password`, `pkce`, `refresh_token`), `resend`, `recover`, `user` (GET và PUT), `logout`, `verify`. Link `verify` chuyển hướng về `nutritiontracker://auth/callback?…&code=…`, giống luồng PKCE thật (kiểm cả `plain` lẫn `s256`).
   - Mã lỗi giống Supabase ở những chỗ app phân biệt: `invalid_credentials`, `email_not_confirmed`, `weak_password`, `same_password`. Email đã xác nhận mà đăng ký lại thì nhận user không có `identities`.
@@ -478,8 +478,8 @@ scripts/
   - Log chỉ ghi method, path và mã trạng thái, không ghi query hay body (không log email, dữ liệu sức khoẻ).
 - **Endpoint điều khiển cho test (`/__test`):** `GET health`, `POST reset` (xoá sạch), `POST users` (tạo user đã xác nhận), `GET outbox?email=` (email xác nhận hoặc đặt lại mật khẩu, kèm link).
 - **Nối với thiết bị:**
-  - `run-test.sh` khởi động mock (hoặc dùng mock đang chạy), chạy `adb reverse tcp:54321 tcp:54321` (vẫn chỉ dùng `adb` bên trong script, như ADR-012), ghi log vào `reports/mock-backend.log`, và tắt mock khi kết thúc.
-  - `run-metro.sh` đặt `EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` và một anon key giả; biến đặt sẵn trong shell được Expo ưu tiên hơn `.env`. Bỏ `.env.e2e`.
+  - `run-test.sh` khởi động mock (hoặc dùng mock đang chạy), chạy `adb reverse tcp:54399 tcp:54399` (vẫn chỉ dùng `adb` bên trong script, như ADR-012), ghi log vào `reports/mock-backend.log`, và tắt mock khi kết thúc.
+  - `run-metro.sh` đặt `EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54399` và một anon key giả; biến đặt sẵn trong shell được Expo ưu tiên hơn `.env`. Bỏ `.env.e2e`.
 - **Test E2E:**
   - `conftest.py` gọi `reset` rồi tạo tài khoản test cố định ở đầu mỗi lượt chạy, nên tài khoản luôn chưa có hồ sơ. `config.json` bỏ `testEmail`, `testPassword`, `signupEmail`.
   - TC-E2E-01 và TC-E2E-07 kiểm thêm `outbox`: app đã yêu cầu gửi đúng loại email, và địa chỉ không tồn tại thì không nhận email nào.

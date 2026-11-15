@@ -85,7 +85,7 @@ npx expo install <pkg>   # luôn dùng thay cho npm install để có phiên b�
 - **Test mobile lỗi thì sửa dựa trên `reports/`:**
   1. đọc `junit.xml` hoặc `report.html` để biết test nào lỗi;
   2. xem `screenshots/` và `page-source/` của test đó;
-  3. xem `appium.log`.
+  3. xem `appium.log` và `mock-backend.log` (route trả `501` là phần mock chưa giả lập, ADR-016).
 
   Sửa xong thì chạy lại. Không nới điều kiện test khi AC chưa đổi.
 - `e2e/mobile-appium/config.json` (UDID máy test) và `reports/` không commit. Chi tiết: `docs/testing/test-plan.md`.

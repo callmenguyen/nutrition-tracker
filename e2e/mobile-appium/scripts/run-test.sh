@@ -43,7 +43,7 @@ trap 'for pid in $STARTED; do kill "$pid" 2>/dev/null; done' EXIT
 adb -s "$UDID" reverse tcp:8081 tcp:8081 >/dev/null 2>&1 || echo "[run-test] Cảnh báo: không đặt được adb reverse cho Metro." >&2
 
 # Mock backend (ADR-016): in-memory Supabase stand-in; conftest.py resets it at the start of the run.
-MOCK_PORT="${MOCK_BACKEND_PORT:-54321}"
+MOCK_PORT="${MOCK_BACKEND_PORT:-54399}"
 MOCK_URL="http://127.0.0.1:$MOCK_PORT"
 if curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1; then
   echo "[run-test] Dùng mock backend đang chạy tại $MOCK_URL (log không nằm trong reports/)."
@@ -54,7 +54,7 @@ else
     curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1 && break
     sleep 0.5
   done
-  curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1 || fail 2 "Mock backend không khởi động được (cần Node ≥ 22.18). Xem $REPORTS/mock-backend.log"
+  curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1 || fail 2 "Mock backend không khởi động được (cần Node ≥ 22.18, cổng $MOCK_PORT phải trống). Xem $REPORTS/mock-backend.log"
 fi
 adb -s "$UDID" reverse "tcp:$MOCK_PORT" "tcp:$MOCK_PORT" >/dev/null 2>&1 || echo "[run-test] Cảnh báo: không đặt được adb reverse cho mock backend." >&2
 export E2E_MOCK_URL="$MOCK_URL"
