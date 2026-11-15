@@ -245,3 +245,13 @@ Mẫu một mục:
 - **Yêu cầu:** Ghi tên chủ dự án là "Nhat Nguyen" thay cho tên tài khoản GitHub cũ.
 - **Quyết định:** Đổi ở `LICENSE` (người giữ bản quyền) và `docs/IdeaBrief.md` (người quyết định). Giữ nguyên package Android, link, ADR đã chấp nhận và các mục cũ trong LOG.
 - **Kết quả:** PR `chore/license-holder`.
+
+## 2026-11-15 · `thay phần test mà có chạy backend bằng một mock node.js backend giả thay vì dùng supabase` — mock backend cho E2E
+- **Yêu cầu:** Test đang chạy backend thì dùng mock backend Node.js thay cho Supabase.
+- **Quyết định:**
+  - Chỉ E2E Appium gọi backend thật (Supabase cloud, ADR-015); Jest đã mock sẵn, pgTAP kiểm Postgres thật nên giữ nguyên. Chủ dự án chọn: chỉ thay E2E, **bỏ hẳn** chế độ chạy trên cloud, duyệt ADR-016.
+  - `e2e/mock-backend/server.ts`: TypeScript chạy thẳng bằng Node, không thêm dependency; giả lập GoTrue (signup, token password/pkce/refresh, resend, recover, user, logout, verify) và PostgREST (`profiles`, `goals`, `user_settings`), dữ liệu tách theo `user_id` trong JWT; phần chưa giả lập trả `501`; `/__test` có `reset`, `users`, `outbox`.
+  - `run-test.sh` bật mock và `adb reverse` cổng 54399; `run-metro.sh` trỏ app vào mock. `conftest.py` reset mock và tạo tài khoản test ở đầu mỗi lượt; bỏ `testEmail`/`testPassword`/`signupEmail` và `.env.e2e`. TC-E2E-01/07 kiểm thêm hộp thư giả.
+  - `jest.config.js` tách project `app` (jest-expo) và `mock-backend` (Node, vì jest-expo thay `fetch`); test mock dùng `supabase-js` thật.
+  - Không sửa được chú thích cũ trong `.env.example` do quyền truy cập file `.env*` của agent; để chủ dự án sửa.
+- **Kết quả:** issue #50, PR `chore/50-e2e-mock-backend`.
