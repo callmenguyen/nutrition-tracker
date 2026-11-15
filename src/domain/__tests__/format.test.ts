@@ -1,6 +1,11 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { formatDecimal1, formatInt, formatSigned } from "@/domain/format";
+import {
+  formatDecimal1,
+  formatInt,
+  formatSigned,
+  formatUpTo1,
+} from "@/domain/format";
 
 describe("format (CLAUDE.md number style)", () => {
   it("uses a dot as thousands separator", () => {
@@ -21,5 +26,14 @@ describe("format (CLAUDE.md number style)", () => {
   it("shows one decimal with a comma", () => {
     expect(formatDecimal1(22.857)).toBe("22,9");
     expect(formatDecimal1(17)).toBe("17,0");
+  });
+
+  it("shows up to one decimal for logged grams", () => {
+    expect(formatUpTo1(25)).toBe("25");
+    expect(formatUpTo1(25.25)).toBe("25,3");
+    expect(formatUpTo1(0.3)).toBe("0,3");
+    expect(formatUpTo1(1234.5)).toBe("1.234,5");
+    expect(formatUpTo1(19.96)).toBe("20");
+    expect(formatUpTo1(-0.5)).toBe("−0,5");
   });
 });

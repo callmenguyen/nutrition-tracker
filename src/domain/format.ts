@@ -22,3 +22,11 @@ export function formatSigned(n: number): string {
 export function formatDecimal1(n: number): string {
   return n.toFixed(1).replace(".", ",");
 }
+
+/** Up to one decimal, comma, dot thousands: 25 → "25", 25.25 → "25,3", 1234.5 → "1.234,5". */
+export function formatUpTo1(n: number): string {
+  const tenths = Math.round(Math.abs(n) * 10);
+  const whole = formatInt(Math.floor(tenths / 10));
+  const text = tenths % 10 === 0 ? whole : `${whole},${tenths % 10}`;
+  return n < 0 && tenths > 0 ? `${MINUS}${text}` : text;
+}

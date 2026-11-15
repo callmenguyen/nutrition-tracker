@@ -23,6 +23,8 @@ const TOKEN_TTL_S = 3600;
 const MIN_PASSWORD_LENGTH = 6; // Supabase default
 /** Tables the app reads and writes; each has one row per user (primary key user_id). */
 const TABLES = new Set(["profiles", "goals", "user_settings"]);
+/** Many rows per user, read-only for now (#16); writes go through log_meal in #17. */
+const MEAL_ENTRIES = "meal_entries";
 
 type User = {
   id: string;
@@ -50,6 +52,7 @@ type MockState = {
   authCodes: Map<string, Flow>;
   outbox: Mail[];
   tables: Map<string, Map<string, Row>>;
+  mealEntries: Row[];
 };
 
 const emptyState = (): MockState => ({
@@ -59,6 +62,7 @@ const emptyState = (): MockState => ({
   authCodes: new Map(),
   outbox: [],
   tables: new Map([...TABLES].map((t) => [t, new Map()])),
+  mealEntries: [],
 });
 
 const now = () => new Date().toISOString();
@@ -401,22 +405,44 @@ export function createMockBackend(): { server: Server } {
     body: unknown,
   ) {
     const table = url.pathname.slice("/rest/v1/".length);
+    const isMeals = table === MEAL_ENTRIES;
     const rows = state.tables.get(table);
-    if (!rows) return notMocked(req, res, url.pathname);
+    if (!rows && !isMeals) return notMocked(req, res, url.pathname);
     const userId = userIdFrom(req);
 
     if (req.method === "GET") {
       const filters: [string, string][] = [];
+      let order: [string, 1 | -1][] = [];
       for (const [key, value] of url.searchParams) {
         if (key === "select") continue;
+        if (key === "order") {
+          // "created_at.asc,id.asc" (postgrest-js .order() calls); nulls options are not mocked.
+          order = value.split(",").map((part) => {
+            const [col, dir = "asc"] = part.split(".");
+            return [col, dir === "desc" ? -1 : 1];
+          });
+          continue;
+        }
         if (!value.startsWith("eq.")) {
           return notMocked(req, res, `${url.pathname}?${key}=${value}`);
         }
         filters.push([key, value.slice(3)]);
       }
-      const own = userId ? rows.get(userId) : undefined;
-      const matches =
-        own && filters.every(([k, v]) => String(own[k]) === v) ? [own] : [];
+      const own = !userId
+        ? []
+        : isMeals
+          ? state.mealEntries.filter((r) => r.user_id === userId)
+          : [rows!.get(userId)].filter((r): r is Row => !!r);
+      const matches = own
+        .filter((row) => filters.every(([k, v]) => String(row[k]) === v))
+        .sort((a, b) => {
+          for (const [col, dir] of order) {
+            const x = String(a[col]);
+            const y = String(b[col]);
+            if (x !== y) return x < y ? -dir : dir;
+          }
+          return 0;
+        });
       const select = url.searchParams.get("select") ?? "*";
       const columns =
         select === "*" ? null : select.split(",").map((c) => c.trim());
@@ -428,7 +454,7 @@ export function createMockBackend(): { server: Server } {
       return send(res, 200, out);
     }
 
-    if (req.method === "POST") {
+    if (req.method === "POST" && rows) {
       const rlsError = {
         code: "42501",
         message: `new row violates row-level security policy for table "${table}"`,
@@ -486,6 +512,25 @@ export function createMockBackend(): { server: Server } {
           return send(res, 409, { message: "user exists" });
         const user = addUser(email, str(body.password), true);
         return send(res, 201, { id: user.id, email: user.email });
+      }
+      case "POST /__test/meal_entries": {
+        // Seeds logged meals for one user, in order: created_at increases with each entry.
+        const user = findByEmail(normEmail(body.email));
+        if (!user) return send(res, 404, { message: "unknown user" });
+        const entries = Array.isArray(body.entries)
+          ? (body.entries as Row[])
+          : [];
+        const base = Date.now();
+        const saved = entries.map((entry, i) => ({
+          ...entry,
+          id: randomUUID(),
+          user_id: user.id,
+          created_at: new Date(
+            base + state.mealEntries.length + i,
+          ).toISOString(),
+        }));
+        state.mealEntries.push(...saved);
+        return send(res, 201, saved);
       }
       case "GET /__test/outbox": {
         const to = normEmail(url.searchParams.get("email"));

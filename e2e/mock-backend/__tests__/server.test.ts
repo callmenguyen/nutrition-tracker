@@ -312,9 +312,101 @@ describe("tables", () => {
 
   it("answers 501 for a table that is not mocked yet", async () => {
     const { client } = await signedIn("a@example.com");
-    const { status, error } = await client.from("meal_entries").select("*");
+    const { status, error } = await client.from("foods").select("*");
     expect(status).toBe(501);
     expect(error?.message).toMatch(/not mocked/);
+  });
+});
+
+describe("meal_entries (read-only until #17)", () => {
+  const entry = (name: string, eaten_on: string) => ({
+    eaten_on,
+    name,
+    calories_kcal: 450,
+    protein_g: 25,
+    sodium_mg: 1800,
+    sugar_g: 6,
+  });
+
+  async function seed(email: string, entries: object[]) {
+    const res = await testApi("/meal_entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, entries }),
+    });
+    expect(res.status).toBe(201);
+  }
+
+  /** The app's query in src/features/meals/meals.ts. */
+  const mealsOf = (client: SupabaseClient, day: string) =>
+    client
+      .from("meal_entries")
+      .select("id, name, calories_kcal, protein_g, sodium_mg, sugar_g")
+      .eq("eaten_on", day)
+      .order("created_at")
+      .order("id");
+
+  it("returns the user's meals of one day in creation order (MEAL-11)", async () => {
+    const { client } = await signedIn("a@example.com");
+    await seed("a@example.com", [
+      entry("Phở", "2026-11-16"),
+      entry("Bún nạm", "2026-11-15"),
+      entry("Cơm tấm", "2026-11-16"),
+    ]);
+    await seed("a@example.com", [entry("Trà đá", "2026-11-16")]);
+
+    const { data, error } = await mealsOf(client, "2026-11-16");
+    expect(error).toBeNull();
+    expect(data!.map((m) => m.name)).toEqual(["Phở", "Cơm tấm", "Trà đá"]);
+    expect(data![0]).toEqual({
+      id: expect.any(String),
+      name: "Phở",
+      calories_kcal: 450,
+      protein_g: 25,
+      sodium_mg: 1800,
+      sugar_g: 6,
+    });
+    const other = await mealsOf(client, "2026-11-15");
+    expect(other.data!.map((m) => m.name)).toEqual(["Bún nạm"]);
+  });
+
+  it("sorts descending when asked", async () => {
+    const { client } = await signedIn("a@example.com");
+    await seed("a@example.com", [
+      entry("1", "2026-11-16"),
+      entry("2", "2026-11-16"),
+    ]);
+    const { data } = await client
+      .from("meal_entries")
+      .select("name")
+      .eq("eaten_on", "2026-11-16")
+      .order("created_at", { ascending: false });
+    expect(data!.map((m) => m.name)).toEqual(["2", "1"]);
+  });
+
+  it("never shows another user's meals, and nothing to anon", async () => {
+    await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    await seed("a@example.com", [entry("Của A", "2026-11-16")]);
+    expect((await mealsOf(b.client, "2026-11-16")).data).toEqual([]);
+    expect((await mealsOf(device(), "2026-11-16")).data).toEqual([]);
+  });
+
+  it("does not accept writes yet (log_meal comes with #17)", async () => {
+    const { client } = await signedIn("a@example.com");
+    const { status } = await client
+      .from("meal_entries")
+      .insert(entry("x", "2026-11-16"));
+    expect(status).toBe(501);
+  });
+
+  it("refuses to seed meals for an unknown user", async () => {
+    const res = await testApi("/meal_entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "ghost@example.com", entries: [] }),
+    });
+    expect(res.status).toBe(404);
   });
 });
 
