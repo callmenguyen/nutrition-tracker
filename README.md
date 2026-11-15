@@ -62,11 +62,11 @@ e2e/mobile-appium/scripts/run-test.sh    # E2E Appium trên thiết bị Android
 | Jest / RNTL | Logic thuần, component render và phản hồi đúng | Hành vi native, mạng, backend thật |
 | pgTAP | RLS, constraint, RPC trên Postgres thật (local) | Cấu hình project cloud, SMTP |
 | `build` | JS bundle được cho Android | APK chạy được trên máy |
-| E2E Appium | Luồng chính chạy trên một thiết bị thật cụ thể | Mọi model máy, thông báo đúng giờ, chế độ tiết kiệm pin |
+| E2E Appium | Luồng chính chạy trên một thiết bị thật cụ thể, với mock backend | Backend Supabase thật, mọi model máy, thông báo đúng giờ, chế độ tiết kiệm pin |
 
-E2E chạy trên Supabase cloud với một tài khoản test đã xác nhận email (ADR-015), không cần Docker. Chép `.env.example` thành `.env.e2e` (đã gitignore) và điền URL cùng anon key của project cloud; `e2e/mobile-appium/scripts/run-metro.sh` sẽ nạp file này. Email và mật khẩu tài khoản test đặt trong `e2e/mobile-appium/config.json` (`testEmail`, `testPassword`).
+E2E chạy trên mock backend Node.js trong bộ nhớ (`e2e/mock-backend/`, ADR-016), không cần Docker hay Supabase cloud. `e2e/mobile-appium/scripts/run-test.sh` tự bật mock, reset dữ liệu và tạo tài khoản test ở đầu mỗi lượt; `run-metro.sh` trỏ app vào mock.
 
-E2E cần `e2e/mobile-appium/config.json`: chép từ `config.example.json` và điền UDID của máy test và tài khoản test (file này không commit). Báo cáo nằm trong `reports/`, mỗi lần chạy ghi đè lần trước. Chi tiết ở [docs/testing/test-plan.md](docs/testing/test-plan.md).
+E2E cần `e2e/mobile-appium/config.json`: chép từ `config.example.json` và điền UDID của máy test (file này không commit). Báo cáo nằm trong `reports/`, mỗi lần chạy ghi đè lần trước. Chi tiết ở [docs/testing/test-plan.md](docs/testing/test-plan.md).
 
 ## Cấu trúc
 

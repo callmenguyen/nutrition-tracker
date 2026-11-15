@@ -3,7 +3,7 @@
 > Cập nhật: 2026-11-04. Kế hoạch và cách chạy: `docs/testing/test-plan.md`. AC gốc: `docs/modules/*.md`. Mã test case chỉ tăng tiếp, không đánh lại. Test case bị bỏ thì gạch đi và giữ nguyên mã.
 >
 > **Dữ liệu chuẩn:**
-> - Tài khoản test trên Supabase cloud, đã xác nhận email, chưa có hồ sơ (`testEmail` trong `e2e/mobile-appium/config.json`, ADR-015).
+> - Tài khoản test `e2e-user@example.com` do `conftest.py` tạo trong mock backend ở đầu mỗi lượt: đã xác nhận email, chưa có hồ sơ (ADR-016).
 > - Hồ sơ ví dụ thứ nhất trong `Goals.md`: Nam, 70 kg, 175 cm, 30 tuổi, `moderate`, `lose`.
 
 ## 1. E2E mobile tự động (Appium, `e2e/mobile-appium/tests/`)

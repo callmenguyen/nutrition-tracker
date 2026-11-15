@@ -1,5 +1,5 @@
-"""Account E2E (issue #12). Runs against the Supabase cloud project with the confirmed test account
-from config.json (ADR-015, test-plan §3).
+"""Account E2E (issue #12). Runs against the mock backend with the confirmed test account that
+conftest.py creates at the start of the run (ADR-016, test-plan §3).
 
 The driver fixture installs the app once per session, so the first test starts signed out;
 every test that signs in signs out again before it ends.
@@ -7,18 +7,13 @@ every test that signs in signs out again before it ends.
 
 import time
 
-import pytest
 from appium.webdriver.common.appiumby import AppiumBy
 
-from conftest import load_config
+from conftest import TEST_EMAIL, TEST_PASSWORD, load_config, outbox
 
 _config = load_config()
-TEST_EMAIL = _config["testEmail"]  # confirmed on the cloud project, no profile yet
-TEST_PASSWORD = _config["testPassword"]
-TEST_DOMAIN = TEST_EMAIL.rsplit("@", 1)[1]
-# The cloud project rejects reserved domains such as .test (email_address_invalid), so sign-ups
-# need a deliverable address; "{ts}" is replaced with a timestamp to keep each run unique.
-SIGNUP_EMAIL = _config.get("signupEmail") or f"e2e-new-{{ts}}@{TEST_DOMAIN}"
+SIGNUP_EMAIL = "e2e-new@example.com"  # the backend is empty at the start of every run
+UNKNOWN_EMAIL = "nobody-here@example.com"
 
 
 def by_id(driver, test_id):
@@ -78,11 +73,12 @@ def test_register_new_email_shows_check_email(driver):
     """TC-E2E-01 · ACC-01: a new email goes to 'Kiểm tra email' and does not enter the app."""
     go_to_login(driver)
     by_id(driver, "login-register").click()
-    type_into(driver, "register-email", SIGNUP_EMAIL.format(ts=int(time.time())))
+    type_into(driver, "register-email", SIGNUP_EMAIL)
     type_into(driver, "register-password", "12345678")
     type_into(driver, "register-confirm", "12345678")
     by_id(driver, "register-submit").click()
     assert by_id(driver, "screen-check-email").is_displayed()
+    assert [m["type"] for m in outbox(SIGNUP_EMAIL)] == ["signup"]
     by_id(driver, "check-email-login").click()
 
 
@@ -116,7 +112,7 @@ def test_wrong_password(driver):
 def test_forgot_password_same_message(driver):
     """TC-E2E-07 · ACC-09: unknown and known emails get the same confirmation."""
     messages = []
-    for email in (f"nobody-here@{TEST_DOMAIN}", TEST_EMAIL):
+    for email in (UNKNOWN_EMAIL, TEST_EMAIL):
         # Open the screen fresh each time so the second read waits for the second response.
         go_to_login(driver)
         by_id(driver, "login-forgot").click()
@@ -126,6 +122,9 @@ def test_forgot_password_same_message(driver):
         messages.append(by_id(driver, "forgot-sent").text)
         driver.back()
     assert messages[0] == messages[1]
+    # Only the existing account actually gets a reset email.
+    assert outbox(UNKNOWN_EMAIL) == []
+    assert [m["type"] for m in outbox(TEST_EMAIL)] == ["recovery"]
 
 
 def test_sign_in_then_sign_out(driver, config):
@@ -134,12 +133,6 @@ def test_sign_in_then_sign_out(driver, config):
     type_into(driver, "login-email", TEST_EMAIL)
     type_into(driver, "login-password", TEST_PASSWORD)
     by_id(driver, "login-submit").click()
-    if driver.find_elements(AppiumBy.ID, "screen-today"):
-        driver.find_element(
-            AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Cài đặt")'
-        ).click()
-        by_id(driver, "settings-signout").click()
-        pytest.skip("the test account already has a profile: create a new one (test-plan §3)")
     assert by_id(driver, "screen-onboarding").is_displayed()
     by_id(driver, "onboarding-signout").click()
     assert by_id(driver, "screen-login").is_displayed()

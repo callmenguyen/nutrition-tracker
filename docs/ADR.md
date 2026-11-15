@@ -26,7 +26,8 @@
 | ADR-012 | Kiểm thử: Jest, pgTAP, Appium (Python/uv) trên thiết bị thật | Chấp nhận; phần vị trí script bị thay thế bởi ADR-014, phần dữ liệu E2E bởi ADR-015 | 2026-11-04 |
 | ADR-013 | Phát hành: EAS Build APK, GitHub Release + SHA-256, không OTA | Chấp nhận | 2026-11-04 |
 | ADR-014 | Script E2E nằm trong `e2e/mobile-appium/scripts/` (thay một phần ADR-012) | Chấp nhận | 2026-11-05 |
-| ADR-015 | E2E chạy trên Supabase cloud với tài khoản test, không cần Docker (thay một phần ADR-011, ADR-012) | Chấp nhận | 2026-11-05 |
+| ADR-015 | E2E chạy trên Supabase cloud với tài khoản test, không cần Docker (thay một phần ADR-011, ADR-012) | Chấp nhận; phần backend và tài khoản test của E2E bị thay thế bởi ADR-016 | 2026-11-05 |
+| ADR-016 | E2E chạy trên mock backend Node.js thay cho Supabase cloud (thay một phần ADR-015) | Chấp nhận | 2026-11-15 |
 
 ---
 
@@ -423,7 +424,7 @@ scripts/
 
 ## ADR-015. E2E chạy trên Supabase cloud với tài khoản test, không cần Docker
 
-- Trạng thái: **Chấp nhận** · Thay thế một phần ADR-011 (Supabase local dùng cho test E2E) và ADR-012 (dữ liệu E2E: seed trên Supabase local; "không chạy E2E trên project cloud chứa dữ liệu thật") · Ngày: 2026-11-05 · Người quyết định: chủ dự án
+- Trạng thái: **Chấp nhận**; **phần backend và tài khoản test của E2E bị thay thế bởi ADR-016** (việc bỏ seed và pgTAP trên Supabase local trong CI vẫn giữ) · Thay thế một phần ADR-011 (Supabase local dùng cho test E2E) và ADR-012 (dữ liệu E2E: seed trên Supabase local; "không chạy E2E trên project cloud chứa dữ liệu thật") · Ngày: 2026-11-05 · Người quyết định: chủ dự án
 
 **Bối cảnh.** Chạy E2E cần Supabase local, tức Docker với khoảng 8 GB image. Máy dev từng hết dung lượng giữa chừng, làm hỏng image và chặn cả lượt test. Appium vốn chạy thủ công trên thiết bị thật, không chạy trong CI.
 
@@ -444,3 +445,50 @@ scripts/
 - Tài khoản test thấy được dữ liệu của chính nó; RLS (ADR-003) giữ dữ liệu người dùng khác tách biệt.
 
 **Xem lại khi:** có người dùng thật ngoài chủ dự án, cần chạy E2E trước khi merge migration, hoặc giới hạn email làm E2E lỗi thường xuyên (khi đó cân nhắc project staging).
+
+---
+
+## ADR-016. E2E chạy trên mock backend Node.js thay cho Supabase cloud
+
+- Trạng thái: **Chấp nhận** · Thay thế một phần ADR-015 (backend và tài khoản test của E2E) · Ngày: 2026-11-15 · Người quyết định: chủ dự án ([#50](https://github.com/callmenguyen/nutrition-tracker/issues/50))
+
+**Bối cảnh.** Có ba lớp test, và chỉ một lớp gọi backend thật:
+- **Jest** đã mock `@/lib/supabase`, không gọi mạng.
+- **pgTAP** kiểm chính Postgres (RLS, constraint, RPC) trên Supabase local trong runner CI.
+- **E2E Appium** gọi project Supabase cloud đang chứa dữ liệu thật (ADR-015). Cách này gây bốn vấn đề:
+  - mỗi tài khoản test chỉ qua Onboarding được một lần, nên sau mỗi lượt phải tạo tài khoản mới;
+  - TC-E2E-01 và TC-E2E-07 phụ thuộc giới hạn gửi email của Supabase;
+  - nhánh có migration mới không chạy E2E được trước khi merge và `db push`;
+  - mỗi lượt để lại user và dữ liệu rác trên project thật.
+
+**Phương án.**
+1. Giữ ADR-015.
+2. Thêm một project Supabase cloud làm staging. Hết dữ liệu rác, nhưng vẫn còn vấn đề email và Onboarding một lần, lại phải quản lý thêm một môi trường.
+3. **Mock backend Node.js chỉ dùng cho E2E.** Server này giả lập phần HTTP API của Supabase (GoTrue, PostgREST) mà app đang gọi, lưu dữ liệu trong bộ nhớ, và có endpoint để test điều khiển.
+4. Mock cả lớp pgTAP. **Loại**, vì pgTAP sinh ra để kiểm RLS, constraint và RPC trong Postgres thật; mock không chứng minh được những điều đó.
+
+**Quyết định.** Phương án 3. Jest và pgTAP giữ nguyên. **Không giữ chế độ chạy E2E trên cloud.**
+
+- **Vị trí và công nghệ:** `e2e/mock-backend/server.ts`, TypeScript chạy thẳng bằng Node (type stripping, Node ≥ 22.18). Chỉ dùng `node:http` và `node:crypto`, không thêm dependency. Server chỉ lắng nghe trên `127.0.0.1` (cổng `MOCK_BACKEND_PORT`, mặc định 54321). JWT ký bằng một khoá công khai trong mã: mock không phải ranh giới bảo mật.
+- **Phạm vi API (đúng phần app đang gọi lúc viết ADR):**
+  - Auth (`/auth/v1`): `signup`, `token` (`password`, `pkce`, `refresh_token`), `resend`, `recover`, `user` (GET và PUT), `logout`, `verify`. Link `verify` chuyển hướng về `nutritiontracker://auth/callback?…&code=…`, giống luồng PKCE thật (kiểm cả `plain` lẫn `s256`).
+  - Mã lỗi giống Supabase ở những chỗ app phân biệt: `invalid_credentials`, `email_not_confirmed`, `weak_password`, `same_password`. Email đã xác nhận mà đăng ký lại thì nhận user không có `identities`.
+  - Dữ liệu (`/rest/v1`): `profiles`, `goals`, `user_settings` (một dòng mỗi user): `select` có lọc `eq`, insert và upsert `on_conflict=user_id`. Mọi dòng gắn với `user_id` trong JWT, mô phỏng RLS ở mức "mỗi tài khoản chỉ thấy và ghi dữ liệu của mình" (lỗi `42501`).
+  - Route, bảng hay toán tử lọc chưa giả lập thì trả `501` và ghi log, để test lỗi thấy ngay.
+  - Log chỉ ghi method, path và mã trạng thái, không ghi query hay body (không log email, dữ liệu sức khoẻ).
+- **Endpoint điều khiển cho test (`/__test`):** `GET health`, `POST reset` (xoá sạch), `POST users` (tạo user đã xác nhận), `GET outbox?email=` (email xác nhận hoặc đặt lại mật khẩu, kèm link).
+- **Nối với thiết bị:**
+  - `run-test.sh` khởi động mock (hoặc dùng mock đang chạy), chạy `adb reverse tcp:54321 tcp:54321` (vẫn chỉ dùng `adb` bên trong script, như ADR-012), ghi log vào `reports/mock-backend.log`, và tắt mock khi kết thúc.
+  - `run-metro.sh` đặt `EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` và một anon key giả; biến đặt sẵn trong shell được Expo ưu tiên hơn `.env`. Bỏ `.env.e2e`.
+- **Test E2E:**
+  - `conftest.py` gọi `reset` rồi tạo tài khoản test cố định ở đầu mỗi lượt chạy, nên tài khoản luôn chưa có hồ sơ. `config.json` bỏ `testEmail`, `testPassword`, `signupEmail`.
+  - TC-E2E-01 và TC-E2E-07 kiểm thêm `outbox`: app đã yêu cầu gửi đúng loại email, và địa chỉ không tồn tại thì không nhận email nào.
+- **Test cho chính mock:** Jest dùng `@supabase/supabase-js` thật gọi mock chạy trong cùng process, với đúng câu truy vấn của app. `jest.config.js` tách hai project (`app` dùng `jest-expo`; `mock-backend` dùng môi trường Node, vì `jest-expo` thay `fetch`), nên test này chạy trong CI cùng `npm test`. Không có workflow E2E mới.
+
+**Hệ quả.**
+- E2E chạy lặp lại được, không đụng dữ liệu thật và không phụ thuộc giới hạn email, kể cả trên nhánh có migration chưa merge.
+- **E2E không còn chứng minh app chạy đúng với Supabase thật.** RLS, constraint và RPC vẫn do pgTAP kiểm. Cấu hình project cloud (xác nhận email, redirect, SMTP) và luồng email thật được kiểm tay trên APK `preview` theo checklist thiết bị thật trước phát hành (ADR-012, `TC-DEV`).
+- **Mock phải lớn lên cùng app.** Tính năng nào gọi bảng, RPC hay Edge Function mới thì thêm vào mock và test của mock trong cùng PR. Ví dụ: #16 cần `log_meal` và `suggest_foods`, #19 cần RPC biểu đồ, #21 cần `delete-account`. Logic của RPC (ghi không trùng, gợi ý bỏ dấu) bị viết lại lần hai trong mock; nếu được, dùng chung hàm thuần trong `src/domain/`.
+- Mỗi lần nâng `@supabase/supabase-js`, định dạng trên đường truyền có thể đổi; test của mock trong Jest sẽ bắt được.
+
+**Xem lại khi:** mock phải tái hiện nhiều logic nghiệp vụ viết bằng SQL; lượt kiểm tay trước phát hành liên tục tìm ra lỗi mà mock bỏ sót; hoặc có người dùng thật và cần môi trường staging.

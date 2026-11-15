@@ -2,7 +2,9 @@
 # Run the Appium E2E suite on a real Android device (ADR-012, docs/testing/test-plan.md).
 # Usage: e2e/mobile-appium/scripts/run-test.sh [pytest args…]
 # Exit codes: 0 pass · 1 test failures · 2 missing config/tools/APK · 3 device not connected.
-# Never starts an emulator. adb is only used here (read-only device check + port reverse for Metro).
+# Starts the E2E mock backend (ADR-016) unless one is already running, and stops what it started.
+# Never starts an emulator. adb is only used here (read-only device check + port reverse for Metro
+# and the mock backend).
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -33,15 +35,34 @@ fi
 rm -rf "$REPORTS"
 mkdir -p "$REPORTS/screenshots" "$REPORTS/page-source"
 
+# Background processes this script started (Appium, mock backend); stopped on exit.
+STARTED=""
+trap 'for pid in $STARTED; do kill "$pid" 2>/dev/null; done' EXIT
+
 # Let the USB-connected device reach Metro on the host (e2e/mobile-appium/scripts/run-metro.sh).
 adb -s "$UDID" reverse tcp:8081 tcp:8081 >/dev/null 2>&1 || echo "[run-test] Cảnh báo: không đặt được adb reverse cho Metro." >&2
 
-APPIUM_PID=""
+# Mock backend (ADR-016): in-memory Supabase stand-in; conftest.py resets it at the start of the run.
+MOCK_PORT="${MOCK_BACKEND_PORT:-54321}"
+MOCK_URL="http://127.0.0.1:$MOCK_PORT"
+if curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1; then
+  echo "[run-test] Dùng mock backend đang chạy tại $MOCK_URL (log không nằm trong reports/)."
+else
+  MOCK_BACKEND_PORT="$MOCK_PORT" node "$ROOT/e2e/mock-backend/server.ts" >"$REPORTS/mock-backend.log" 2>&1 &
+  STARTED="$STARTED $!"
+  for _ in $(seq 1 20); do
+    curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1 && break
+    sleep 0.5
+  done
+  curl -fsS "$MOCK_URL/__test/health" >/dev/null 2>&1 || fail 2 "Mock backend không khởi động được (cần Node ≥ 22.18). Xem $REPORTS/mock-backend.log"
+fi
+adb -s "$UDID" reverse "tcp:$MOCK_PORT" "tcp:$MOCK_PORT" >/dev/null 2>&1 || echo "[run-test] Cảnh báo: không đặt được adb reverse cho mock backend." >&2
+export E2E_MOCK_URL="$MOCK_URL"
+
 if ! curl -fsS "$SERVER/status" >/dev/null 2>&1; then
   port="$(node -e "process.stdout.write(new URL(process.argv[1]).port||'4723')" "$SERVER")"
   appium --port "$port" --log "$REPORTS/appium.log" >/dev/null 2>&1 &
-  APPIUM_PID=$!
-  trap '[ -n "$APPIUM_PID" ] && kill "$APPIUM_PID" 2>/dev/null' EXIT
+  STARTED="$STARTED $!"
   for _ in $(seq 1 30); do
     curl -fsS "$SERVER/status" >/dev/null 2>&1 && break
     sleep 1
@@ -58,7 +79,7 @@ uv run pytest \
   "$@"
 rc=$?
 
-echo "[run-test] Báo cáo: $REPORTS (report.html, junit.xml, screenshots/, page-source/, appium.log)"
+echo "[run-test] Báo cáo: $REPORTS (report.html, junit.xml, screenshots/, page-source/, appium.log, mock-backend.log)"
 case "$rc" in
   0) exit 0 ;;
   2) exit 2 ;;

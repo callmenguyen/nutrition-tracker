@@ -18,6 +18,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 - Nền app: client Supabase với phiên được mã hoá (khoá trong SecureStore), TanStack Query (mutation không tự retry) ([#8](https://github.com/callmenguyen/nutrition-tracker/issues/8)).
 
 ### Bảo trì
+- E2E chạy trên mock backend Node.js trong bộ nhớ (`e2e/mock-backend/`) thay cho Supabase cloud: mỗi lượt bắt đầu với dữ liệu sạch và tài khoản test mới, email xác nhận và đặt lại mật khẩu được kiểm qua hộp thư giả; mock có test Jest dùng `supabase-js` thật (ADR-016, [#50](https://github.com/callmenguyen/nutrition-tracker/issues/50)).
 - Khung repo: Expo SDK 58 (TypeScript, Expo Router, 3 tab Hôm nay · Biểu đồ · Cài đặt chưa có tính năng), Supabase local với test RLS, Jest, ESLint/Prettier, E2E Appium (Python/uv) cùng các script build APK, Metro và chạy test, CI, Dependabot.
 
 [Unreleased]: https://github.com/callmenguyen/nutrition-tracker/commits/main

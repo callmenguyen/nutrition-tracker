@@ -66,7 +66,7 @@ schema_paths = []
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
-# Disabled: E2E uses a cloud test account (ADR-015); pgTAP suites create their own data.
+# Disabled: E2E runs on the mock backend (ADR-016); pgTAP suites create their own data.
 enabled = false
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"

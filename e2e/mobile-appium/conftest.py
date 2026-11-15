@@ -1,7 +1,8 @@
 """Shared Appium fixtures for the mobile E2E suite (ADR-012, docs/testing/test-plan.md).
 
-- Reads the device config and the cloud test account from config.json (gitignored; copy
-  config.example.json). E2E runs against the Supabase cloud project (ADR-015).
+- Reads the device config from config.json (gitignored; copy config.example.json).
+- E2E runs against the in-memory mock backend (ADR-016) that run-test.sh starts: the run begins by
+  resetting it and creating the confirmed test account (TEST_EMAIL, no profile yet).
 - Creates one UiAutomator2 session per test session.
 - Before every test, brings the app under test to the foreground and fails fast if it is not there,
   so a test never runs against another app.
@@ -13,6 +14,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -26,6 +30,10 @@ REPO_ROOT = E2E_DIR.parent.parent
 CONFIG_PATH = Path(os.environ.get("E2E_CONFIG", E2E_DIR / "config.json"))
 REPORTS_DIR = Path(os.environ.get("E2E_REPORTS_DIR", REPO_ROOT / "reports"))
 STARTUP_TIMEOUT = 90  # seconds for the first screen after install (bundle download included)
+MOCK_URL = os.environ.get("E2E_MOCK_URL", "http://127.0.0.1:54321")
+# Created fresh in the mock backend for every run: confirmed email, no profile yet.
+TEST_EMAIL = "e2e-user@example.com"
+TEST_PASSWORD = "e2e-password-1"
 
 
 def load_config() -> dict:
@@ -35,7 +43,7 @@ def load_config() -> dict:
             returncode=2,
         )
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    for key in ("udid", "appiumServer", "apkPath", "appPackage", "testEmail", "testPassword"):
+    for key in ("udid", "appiumServer", "apkPath", "appPackage"):
         if not config.get(key):
             pytest.exit(f"config.json is missing '{key}'.", returncode=2)
     return config
@@ -44,6 +52,35 @@ def load_config() -> dict:
 @pytest.fixture(scope="session")
 def config() -> dict:
     return load_config()
+
+
+def mock_api(method: str, path: str, payload: dict | None = None):
+    """Calls the mock backend's /__test endpoints; returns the JSON body, or None when empty."""
+    data = json.dumps(payload).encode() if payload is not None else None
+    request = urllib.request.Request(
+        f"{MOCK_URL}/__test{path}", data=data, method=method, headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(request, timeout=5) as response:
+        body = response.read()
+    return json.loads(body) if body else None
+
+
+def outbox(email: str) -> list[dict]:
+    """Emails the mock backend "sent" to this address: [{"type": "signup"|"recovery", "link": ...}]."""
+    return mock_api("GET", f"/outbox?email={urllib.parse.quote(email)}")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_backend():
+    """Every run starts from an empty backend with one confirmed test account."""
+    try:
+        mock_api("POST", "/reset")
+        mock_api("POST", "/users", {"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    except (urllib.error.URLError, OSError) as exc:
+        pytest.exit(
+            f"Mock backend at {MOCK_URL} is not reachable ({exc}). Run E2E through run-test.sh (ADR-016).",
+            returncode=2,
+        )
 
 
 @pytest.fixture(scope="session")

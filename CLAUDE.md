@@ -28,7 +28,8 @@ Mọi quyết định kỹ thuật nằm trong **`docs/ADR.md`**, một file duy
   - Jest, pgTAP, Appium;
   - phát hành APK qua EAS, không OTA.
 - **ADR-014:** script chạy Metro và E2E nằm ở `e2e/mobile-appium/scripts/`; `scripts/` chỉ còn build APK (thay một phần ADR-012).
-- **ADR-015:** E2E chạy trên Supabase cloud với tài khoản test trong `config.json`, không cần Docker; Supabase local chỉ còn cho pgTAP/CI và dev (thay một phần ADR-011, ADR-012).
+- **ADR-015:** E2E không cần Docker; Supabase local chỉ còn cho pgTAP/CI và dev (thay một phần ADR-011, ADR-012). Phần chạy trên Supabase cloud với tài khoản test đã bị ADR-016 thay thế.
+- **ADR-016:** E2E chạy trên mock backend Node.js trong bộ nhớ (`e2e/mock-backend/`), do `run-test.sh` bật và reset mỗi lượt; không còn chế độ cloud. Bảng, RPC hay Edge Function mới mà app gọi phải được thêm vào mock (kèm test Jest của mock) trong cùng PR.
 - **Bị loại, không đề xuất lại:** Firebase Auth/Firestore, backend riêng, offline sync, Maestro/Detox, lặp hằng tháng, exclusion constraint cho lịch, OTA update, Dynamic Color.
 
 ### Cách dùng `docs/ADR.md`
@@ -44,7 +45,7 @@ Mọi quyết định kỹ thuật nằm trong **`docs/ADR.md`**, một file duy
 
 - `src/app/`: route (Expo Router): `(auth)/` khi chưa đăng nhập, `onboarding` khi chưa có hồ sơ, `(tabs)/` khi đã có hồ sơ, `auth/callback` nhận deep link. `src/features/<tính năng>/`: logic gọi Supabase, schema zod, provider. `src/domain/`: logic thuần. `src/components/`: UI dùng chung. `src/constants/`: theme.
 - `supabase/`: `config.toml`, `migrations/`, `tests/` (pgTAP).
-- `e2e/mobile-appium/`: Appium + pytest (uv); `e2e/mobile-appium/scripts/`: chạy Metro và E2E (ADR-014). `scripts/`: build APK.
+- `e2e/mobile-appium/`: Appium + pytest (uv); `e2e/mobile-appium/scripts/`: chạy Metro và E2E (ADR-014). `e2e/mock-backend/`: mock Supabase cho E2E (ADR-016). `scripts/`: build APK.
 - `docs/`: spec (`RequirementsOutline.md`, `modules/`), `ADR.md`, `testing/`. Thiết kế: `PRODUCT.md`, `.impeccable/surfaces/`. Nhật ký prompt: `prompts/LOG.md`.
 
 ## Lệnh
@@ -87,7 +88,7 @@ npx expo install <pkg>   # luôn dùng thay cho npm install để có phiên b�
   3. xem `appium.log`.
 
   Sửa xong thì chạy lại. Không nới điều kiện test khi AC chưa đổi.
-- `e2e/mobile-appium/config.json` (UDID, tài khoản test cloud) và `reports/` không commit. Chi tiết: `docs/testing/test-plan.md`.
+- `e2e/mobile-appium/config.json` (UDID máy test) và `reports/` không commit. Chi tiết: `docs/testing/test-plan.md`.
 
 ## Điểm dễ hỏng
 

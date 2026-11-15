@@ -26,21 +26,21 @@
   - Appium 2 cùng driver `uiautomator2`;
   - `uv`.
 
-  Không cần Docker cho E2E (ADR-015).
-- **Backend:** project Supabase cloud, với một tài khoản test do chủ dự án tạo trên dashboard (Authentication → Add user, tự xác nhận email). App debug đọc URL và anon key của project cloud từ `.env.e2e`.
-  - Mỗi tài khoản chỉ đi qua Onboarding được một lần (không có policy xoá hồ sơ). Sau một lượt đạt, tạo tài khoản mới (ví dụ `testuser002@…`) và sửa `testEmail` trong `config.json`.
-  - E2E chỉ kiểm được schema đã `db push` lên cloud.
-  - TC-E2E-01 và TC-E2E-07 gửi email thật. Project cloud từ chối domain dành riêng như `.test` (`email_address_invalid`), nên TC-E2E-01 đăng ký bằng `signupEmail` (địa chỉ có thật). Nếu lỗi vì giới hạn email của Supabase thì ghi rõ trong báo cáo.
+  Không cần Docker hay Supabase cloud cho E2E (ADR-016). Node phải từ 22.18 trở lên để chạy mock backend.
+- **Backend:** mock backend Node.js trong bộ nhớ, `e2e/mock-backend/server.ts` (ADR-016).
+  - `run-test.sh` bật mock ở cổng 54321 (đổi bằng `MOCK_BACKEND_PORT`), làm `adb reverse tcp:54321 tcp:54321`, ghi log vào `reports/mock-backend.log`, và tắt mock khi xong. Nếu đã có mock chạy ở cổng đó thì dùng lại.
+  - `run-metro.sh` trỏ app vào `http://127.0.0.1:54321` với anon key giả, ưu tiên hơn `.env`.
+  - Đầu mỗi lượt, `conftest.py` reset mock và tạo tài khoản test `e2e-user@example.com` (đã xác nhận, chưa có hồ sơ). Không cần tạo tài khoản bằng tay.
+  - Email không được gửi thật: mock lưu vào `outbox`, test đọc qua `GET /__test/outbox?email=`.
+  - Mock chỉ giả lập phần API mà app đang gọi; gọi tới phần chưa có thì nhận `501` (xem `mock-backend.log`). Tính năng mới gọi bảng hay RPC mới phải thêm vào mock trong cùng PR.
+  - E2E **không** chứng minh app chạy đúng với Supabase thật. Phần đó kiểm tay trên APK `preview` theo checklist `TC-DEV` trước phát hành.
 - **Cấu hình máy test:** `e2e/mobile-appium/config.json` (**không commit**; có trong `.gitignore`). Mẫu nằm ở `config.example.json`:
   ```json
   {
     "udid": "<UDID máy test>",
     "appiumServer": "http://127.0.0.1:4723",
     "apkPath": "build/app-debug.apk",
-    "appPackage": "<package Android>",
-    "testEmail": "<email tài khoản test trên cloud>",
-    "testPassword": "<mật khẩu tài khoản test>",
-    "signupEmail": "<địa chỉ nhận được thư, có {ts}, ví dụ ten+e2e-{ts}@domain-that>"
+    "appPackage": "<package Android>"
   }
   ```
 - **Kết nối Metro:** máy test cắm USB. `run-metro.sh` chạy Metro ở cổng 8081; `run-test.sh` tự làm `adb reverse tcp:8081 tcp:8081` để APK debug tải được JS bundle. Lệnh `adb` chỉ nằm **trong script**.
@@ -84,7 +84,7 @@ Khi gửi ảnh chụp vào issue hoặc PR, kiểm tra trước để không l�
 - Không sửa test cho "xanh" bằng cách nới điều kiện, trừ khi AC trong spec đã đổi.
 
 ## 7. Tiêu chí vào và ra cho mỗi release
-- **Vào:** CI xanh trên `main`; APK debug build được; tài khoản test trên cloud chưa có hồ sơ và schema cloud đã `db push` (ADR-015).
+- **Vào:** CI xanh trên `main`; APK debug build được; mock backend có đủ phần API mà các test case của milestone cần (ADR-016).
 - **Ra:**
   - mọi `TC-E2E` của milestone đạt trên ít nhất một thiết bị thật;
   - mọi `TC-DEV` của milestone đã kiểm và ghi kết quả;

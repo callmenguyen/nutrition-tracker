@@ -1,5 +1,5 @@
-"""Onboarding and Cài đặt › Hồ sơ E2E (issue #13). Requires a cloud test account that has no
-profile yet (ADR-015, test-plan §3); after a passing run, create a new account for the next one.
+"""Onboarding and Cài đặt › Hồ sơ E2E (issue #13). Uses the test account that conftest.py creates
+in the mock backend at the start of the run, so it has no profile yet (ADR-016, test-plan §3).
 
 Runs after test_auth.py (alphabetical order), which leaves the app on Đăng nhập.
 """
@@ -111,9 +111,6 @@ def test_onboarding_validation_then_save(driver, config):
     """TC-E2E-04 · ACC-04, ACC-05: first sign-in lands on onboarding; invalid values lock 'Tiếp tục'.
     TC-E2E-05 · ACC-06, GOAL-01, GOAL-02: the summary shows example 1; reopening goes to Hôm nay."""
     sign_in(driver)
-    if driver.find_elements(AppiumBy.ID, "screen-today"):
-        sign_out_from_tabs(driver)  # leave the app signed out for the tests that follow
-        pytest.skip("the test account already has a profile: create a new one (test-plan §3)")
     assert by_id(driver, "screen-onboarding").is_displayed()
     wait_until(driver, submit_is(False))
 
