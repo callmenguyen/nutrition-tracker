@@ -10,7 +10,7 @@ import datetime
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
 
-from conftest import create_user_with_profile, seed_meals
+from conftest import REPORTS_DIR, create_user_with_profile, seed_meals
 from test_auth import by_id, go_to_login, type_into
 from test_onboarding import by_text, sign_out_from_tabs, wait_until
 
@@ -53,6 +53,10 @@ def today_account():
 
 def open_today(driver):
     """Signed in as the Hôm nay account, on the Hôm nay tab."""
+    # A date picker left open by a failed test is its own window and hides the screen behind it.
+    leftover = driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Hủy")')
+    if leftover:
+        leftover[0].click()
     if driver.find_elements(AppiumBy.ID, "screen-today"):
         return
     go_to_login(driver)
@@ -66,6 +70,13 @@ def restart(driver, config):
     driver.terminate_app(config["appPackage"])
     driver.activate_app(config["appPackage"])
     assert by_id(driver, "screen-today").is_displayed()
+
+
+def snapshot(driver, name: str) -> None:
+    """Screenshot for the design review the issue asks for (reports/screenshots/today-*.png)."""
+    folder = REPORTS_DIR / "screenshots"
+    folder.mkdir(parents=True, exist_ok=True)
+    driver.get_screenshot_as_file(str(folder / f"today-{name}.png"))
 
 
 def meal_names(driver) -> list[str]:
@@ -87,6 +98,7 @@ def test_today_starts_empty_on_today(driver):
     assert by_id(driver, "today-calories").text == "0"
     assert "2.056 kcal" in by_id(driver, "today-calories-target").text
     assert by_id(driver, "today-calories-status").text == "Còn 2.056 kcal"
+    snapshot(driver, "empty")
 
 
 def test_next_is_locked_and_picker_blocks_future_days(driver):
@@ -96,17 +108,19 @@ def test_next_is_locked_and_picker_blocks_future_days(driver):
     assert not driver.find_elements(AppiumBy.ID, "today-chip-today")
 
     by_id(driver, "today-date").click()
-    # The Compose dialog shows the current month; tomorrow is only on screen within the same month.
-    day_cells = lambda d, n: d.find_elements(  # noqa: E731
-        AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().text("{n}")'
-    )
-    wait_until(driver, lambda d: day_cells(d, TODAY.day), timeout=10)
-    assert any(c.get_attribute("enabled") == "true" for c in day_cells(driver, TODAY.day))
-    tomorrow = TODAY + datetime.timedelta(days=1)
-    if tomorrow.month == TODAY.month:
-        cells = day_cells(driver, tomorrow.day)
-        assert cells, "tomorrow's cell is not on screen"
-        assert all(c.get_attribute("enabled") == "false" for c in cells)
+    # Day cells of the shown month are the only checkable nodes, in calendar order; their text is
+    # in the phone's language, so go by position. The checked cell is the viewed day (today).
+    def day_cells(d):
+        return d.find_elements(AppiumBy.ANDROID_UIAUTOMATOR, "new UiSelector().checkable(true)")
+
+    wait_until(driver, lambda d: len(day_cells(d)) >= 28, timeout=10)
+    cells = day_cells(driver)
+    checked = [i for i, c in enumerate(cells) if c.get_attribute("checked") == "true"]
+    assert checked == [TODAY.day - 1], "the picker should open on today"
+    assert cells[TODAY.day - 1].get_attribute("enabled") == "true"
+    assert all(c.get_attribute("enabled") == "true" for c in cells[: TODAY.day - 1])
+    assert all(c.get_attribute("enabled") == "false" for c in cells[TODAY.day :])
+    snapshot(driver, "picker")
     by_text(driver, "Hủy").click()
     assert by_id(driver, "screen-today").is_displayed()
 
@@ -123,6 +137,7 @@ def test_previous_day_shows_only_its_meals(driver):
     assert vi(YESTERDAY) in by_id(driver, "today-date").get_attribute("content-desc")
     assert by_id(driver, "today-calories").text == "450"
     assert by_id(driver, "today-next").get_attribute("enabled") == "true"
+    snapshot(driver, "yesterday")
 
     by_id(driver, "today-chip-today").click()
     assert by_id(driver, "today-empty").is_displayed()
@@ -138,6 +153,7 @@ def test_order_survives_restart(driver, config):
     wait_until(driver, lambda d: len(meal_names(d)) == 3, timeout=10)
     assert meal_names(driver) == ["Món 1", "Món 2", "Món 3"]
     assert by_id(driver, "today-calories").text == "600"
+    snapshot(driver, "three-meals")
 
     restart(driver, config)
     wait_until(driver, lambda d: len(meal_names(d)) == 3, timeout=10)

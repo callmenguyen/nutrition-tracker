@@ -130,6 +130,8 @@ function DayBar({
             confirmButtonLabel="Chọn"
             dismissButtonLabel="Hủy"
             showVariantToggle={false}
+            // Its built-in title is English only ("Select date"); the headline shows the date.
+            showTitle={false}
             color={colors.primary}
             onDateSelected={(date) => {
               setPicking(false);
@@ -488,7 +490,8 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { paddingVertical: space.m },
+  // flexGrow: the page (and its red margin rule) fills the screen even on an empty day.
+  scroll: { flexGrow: 1, paddingVertical: space.m },
   dayBar: { minHeight: layout.touchTarget },
   dayRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   iconButton: {
