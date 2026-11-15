@@ -56,13 +56,39 @@ def config() -> dict:
 
 def mock_api(method: str, path: str, payload: dict | None = None):
     """Calls the mock backend's /__test endpoints; returns the JSON body, or None when empty."""
+    return _request(method, f"{MOCK_URL}/__test{path}", payload)
+
+
+def _request(method: str, url: str, payload=None, headers: dict | None = None):
     data = json.dumps(payload).encode() if payload is not None else None
     request = urllib.request.Request(
-        f"{MOCK_URL}/__test{path}", data=data, method=method, headers={"Content-Type": "application/json"}
+        url, data=data, method=method, headers={"Content-Type": "application/json", **(headers or {})}
     )
     with urllib.request.urlopen(request, timeout=5) as response:
         body = response.read()
     return json.loads(body) if body else None
+
+
+def create_user_with_profile(email: str, password: str, profile: dict) -> None:
+    """A confirmed account that already has a profile, so sign-in lands on Hôm nay.
+
+    The profile goes through the mock's PostgREST route with the user's own token, like the app.
+    """
+    mock_api("POST", "/users", {"email": email, "password": password})
+    session = _request(
+        "POST", f"{MOCK_URL}/auth/v1/token?grant_type=password", {"email": email, "password": password}
+    )
+    _request(
+        "POST",
+        f"{MOCK_URL}/rest/v1/profiles?on_conflict=user_id",
+        profile,
+        {"Authorization": f"Bearer {session['access_token']}", "Prefer": "resolution=merge-duplicates"},
+    )
+
+
+def seed_meals(email: str, entries: list[dict]) -> None:
+    """Adds logged meals for a user in this order (created_at increases), bypassing the UI."""
+    mock_api("POST", "/meal_entries", {"email": email, "entries": entries})
 
 
 def outbox(email: str) -> list[dict]:

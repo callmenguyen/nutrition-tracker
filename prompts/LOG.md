@@ -255,3 +255,13 @@ Mẫu một mục:
   - `jest.config.js` tách project `app` (jest-expo) và `mock-backend` (Node, vì jest-expo thay `fetch`); test mock dùng `supabase-js` thật.
   - Không sửa được chú thích cũ trong `.env.example` do quyền truy cập file `.env*` của agent; để chủ dự án sửa.
 - **Kết quả:** issue #50, PR `chore/50-e2e-mock-backend`.
+
+## 2026-11-16 · `/kessie-skills:proj build #16` — Tab Hôm nay
+- **Yêu cầu:** Làm issue #16: tab Hôm nay với chọn ngày, thẻ tổng, danh sách món.
+- **Quyết định:**
+  - Chủ dự án chốt: dòng "Còn / Vượt X kcal" so với **mục tiêu**, trung tính; chỉ vượt **ngưỡng trên** (calo 4000, natri 2000, đạm/đường theo Goals.md) mới đỏ + "!" trong lề + "Vượt ngưỡng X".
+  - Lịch dùng `DatePickerDialog` của `@expo/ui` (đã có trong APK). Compose chọn ngày theo nửa đêm UTC còn `selectableDates` theo ngày địa phương (đọc mã native), nên có hàm chuyển đổi riêng kèm test.
+  - Ngày xem mặc định "theo hôm nay" (qua nửa đêm vẫn là hôm nay); ngày đã chọn thì giữ.
+  - Mock backend thêm `meal_entries` chỉ đọc (lọc `eq`, `order`) và `/__test/meal_entries` để seed; ghi món để #17 làm cùng `log_meal`.
+  - Chưa làm: FAB "+", nút "Thêm món", sheet (#17); 3 dòng Nạp/Tiêu hao/Ròng (Workout, 0.2.0). Skill `impeccable` không có sẵn nên theo brief bằng tay; direction contract ghi vào brief.
+- **Kết quả:** PR `feat/16-today-tab` (Refs #16).

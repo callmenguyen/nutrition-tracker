@@ -33,6 +33,8 @@
 | TC-E2E-19 | ACC-10 | A đã đăng nhập | Đăng xuất → Back | Về Đăng nhập; Back không quay lại được màn hình có dữ liệu |
 | TC-E2E-20 | ACC-11, ACC-12 | Tài khoản tạm | Xoá tài khoản → hủy; nhập sai mật khẩu; nhập đúng → đăng nhập lại | Hủy và sai mật khẩu: không xoá gì. Đúng: đăng nhập lại báo sai thông tin; fixture kiểm DB (service role, **chỉ trên local**) không còn bản ghi nào |
 
+> **Tình trạng theo issue (#16, 2026-11-16):** TC-E2E-09 và TC-E2E-12 chạy đủ trong `tests/test_today.py`. Phần hiển thị của TC-E2E-10 (món của hôm qua chỉ hiện ở hôm qua) và phần thứ tự của TC-E2E-14 (thứ tự giữ nguyên sau khi tắt app mở lại) chạy với món seed qua mock backend (ADR-016). Phần thêm và sửa món qua bottom sheet làm ở #17.
+
 ### 0.2.0 (Workout)
 | Mã | AC | Tiền điều kiện | Bước chính | Kết quả mong đợi |
 |---|---|---|---|---|
