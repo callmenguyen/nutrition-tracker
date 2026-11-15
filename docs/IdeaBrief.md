@@ -1,6 +1,6 @@
 # Idea brief — Nutrition Tracker
 
-**Ngày:** 2026-11-04 · **Người quyết định:** chủ dự án (antialberteinstein) · **Trạng thái:** đã duyệt 2026-11-04
+**Ngày:** 2026-11-04 · **Người quyết định:** chủ dự án (Nhat Nguyen) · **Trạng thái:** đã duyệt 2026-11-04
 
 **Loại dự án:** A — App mobile có dữ liệu người dùng (mỗi tài khoản sở hữu dữ liệu riêng).
 
