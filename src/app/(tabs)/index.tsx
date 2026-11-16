@@ -2,10 +2,16 @@ import { useState } from "react";
 
 import type { Day } from "@/domain/day";
 import { useTargets } from "@/features/goals/goals";
-import { useMealsForDay, useToday } from "@/features/meals/meals";
+import { MealSheet, type SheetTarget } from "@/features/meals/meal-sheet";
+import {
+  useDeleteMeal,
+  useLogMeal,
+  useMealsForDay,
+  useToday,
+} from "@/features/meals/meals";
 import { type TodayState, TodayView } from "@/features/meals/today-view";
 
-/** Tab Hôm nay (issue #16). */
+/** Tab Hôm nay (issues #16, #17). */
 export default function TodayScreen() {
   const today = useToday();
   // null = follow today, so viewing "today" stays on today after midnight.
@@ -13,6 +19,9 @@ export default function TodayScreen() {
   const day = picked ?? today;
   const meals = useMealsForDay(day);
   const targets = useTargets();
+  const [sheet, setSheet] = useState<SheetTarget | null>(null);
+  const logMeal = useLogMeal();
+  const deleteMeal = useDeleteMeal();
 
   // A failed background refetch keeps showing the data already loaded.
   const failed =
@@ -30,11 +39,22 @@ export default function TodayScreen() {
       : { kind: "loading" };
 
   return (
-    <TodayView
-      day={day}
-      today={today}
-      onChangeDay={(d) => setPicked(d === today ? null : d)}
-      state={state}
-    />
+    <>
+      <TodayView
+        day={day}
+        today={today}
+        onChangeDay={(d) => setPicked(d === today ? null : d)}
+        state={state}
+        onAdd={() => setSheet({ mode: "add", day })}
+        onEdit={(meal) => setSheet({ mode: "edit", meal, day })}
+      />
+      <MealSheet
+        target={sheet}
+        today={today}
+        onClose={() => setSheet(null)}
+        onSave={(id, meal) => logMeal.mutateAsync({ id, meal })}
+        onDelete={(id) => deleteMeal.mutateAsync(id)}
+      />
+    </>
   );
 }

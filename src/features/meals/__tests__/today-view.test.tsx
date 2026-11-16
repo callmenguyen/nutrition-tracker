@@ -67,6 +67,9 @@ const meal = (
   ...over,
 });
 
+const onAdd = jest.fn();
+const onEdit = jest.fn();
+
 async function show(state: TodayState, day = TODAY, onChangeDay = jest.fn()) {
   await render(
     <TodayView
@@ -74,6 +77,8 @@ async function show(state: TodayState, day = TODAY, onChangeDay = jest.fn()) {
       today={TODAY}
       onChangeDay={onChangeDay}
       state={state}
+      onAdd={onAdd}
+      onEdit={onEdit}
     />,
   );
   return onChangeDay;
@@ -149,6 +154,8 @@ describe("TodayView", () => {
         today={TODAY}
         onChangeDay={onChangeDay}
         state={state}
+        onAdd={onAdd}
+        onEdit={onEdit}
       />
     );
     const { rerender } = await render(ui({ kind: "loading" }));
@@ -244,5 +251,30 @@ describe("TodayView", () => {
     expect(screen.getByTestId("today-error")).toBeTruthy();
     await fireEvent.press(screen.getByTestId("today-retry"));
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("#17: the FAB and the empty state's Thêm món open the add sheet", async () => {
+    onAdd.mockClear();
+    await show({ kind: "ready", meals: [], targets });
+    await fireEvent.press(screen.getByTestId("today-add"));
+    await fireEvent.press(screen.getByTestId("today-empty-add"));
+    expect(onAdd).toHaveBeenCalledTimes(2);
+  });
+
+  it("#17: tapping a meal row opens it for editing", async () => {
+    onEdit.mockClear();
+    const second = meal("b", "Cơm tấm");
+    await show({
+      kind: "ready",
+      targets,
+      meals: [meal("a", "Bún nạm"), second],
+    });
+    await fireEvent.press(screen.getByTestId("meal-row-1"));
+    expect(onEdit).toHaveBeenCalledWith(second);
+  });
+
+  it("has no FAB while loading or after an error", async () => {
+    await show({ kind: "loading" });
+    expect(screen.queryByTestId("today-add")).toBeNull();
   });
 });

@@ -39,13 +39,25 @@ type Props = {
   today: Day;
   onChangeDay: (day: Day) => void;
   state: TodayState;
+  /** Opens the add-meal sheet for the viewed day (FAB "+" and the empty state's "Thêm món"). */
+  onAdd: () => void;
+  /** Opens the sheet to edit or delete a meal (tap on its row). */
+  onEdit: (meal: MealEntry) => void;
 };
 
 /**
  * Tab Hôm nay (MealLog.md §2, brief .impeccable/surfaces/src-app-tabs-index-tsx.md): day bar,
  * Calo block, three nutrient rows and the day's meals on a notebook page. Presentational only.
  */
-export function TodayView({ day, today, onChangeDay, state }: Props) {
+export function TodayView({
+  day,
+  today,
+  onChangeDay,
+  state,
+  onAdd,
+  onEdit,
+}: Props) {
+  const { colors } = useTheme();
   return (
     <ThemedView style={styles.flex} testID="screen-today">
       <SafeAreaView edges={["top"]} style={styles.flex}>
@@ -57,10 +69,34 @@ export function TodayView({ day, today, onChangeDay, state }: Props) {
             ) : state.kind === "error" ? (
               <LoadError onRetry={state.onRetry} />
             ) : (
-              <DayContent meals={state.meals} targets={state.targets} />
+              <DayContent
+                meals={state.meals}
+                targets={state.targets}
+                onAdd={onAdd}
+                onEdit={onEdit}
+              />
             )}
           </NotebookPage>
         </ScrollView>
+        {state.kind === "ready" ? (
+          <Pressable
+            onPress={onAdd}
+            accessibilityRole="button"
+            accessibilityLabel="Thêm món"
+            style={({ pressed }) => [
+              styles.fab,
+              { backgroundColor: colors.primaryContainer },
+              pressed && styles.pressed,
+            ]}
+            testID="today-add"
+          >
+            <SymbolView
+              name={{ ios: "plus", android: "add", web: "add" }}
+              tintColor={colors.onPrimaryContainer}
+              size={24}
+            />
+          </Pressable>
+        ) : null}
       </SafeAreaView>
     </ThemedView>
   );
@@ -191,9 +227,13 @@ function IconButton({
 function DayContent({
   meals,
   targets,
+  onAdd,
+  onEdit,
 }: {
   meals: MealEntry[];
   targets: Targets;
+  onAdd: () => void;
+  onEdit: (meal: MealEntry) => void;
 }) {
   const totals = sumMeals(meals);
   return (
@@ -220,7 +260,7 @@ function DayContent({
         total={totals.sugar}
         target={targets.sugar}
       />
-      <MealList meals={meals} />
+      <MealList meals={meals} onAdd={onAdd} onEdit={onEdit} />
     </>
   );
 }
@@ -383,7 +423,15 @@ function NutrientRow({
   );
 }
 
-function MealList({ meals }: { meals: MealEntry[] }) {
+function MealList({
+  meals,
+  onAdd,
+  onEdit,
+}: {
+  meals: MealEntry[];
+  onAdd: () => void;
+  onEdit: (meal: MealEntry) => void;
+}) {
   const { colors } = useTheme();
   return (
     <>
@@ -401,37 +449,53 @@ function MealList({ meals }: { meals: MealEntry[] }) {
           >
             Chưa có món nào cho ngày này
           </ThemedText>
+          <View style={styles.retry}>
+            <Button
+              label="Thêm món"
+              variant="text"
+              onPress={onAdd}
+              testID="today-empty-add"
+            />
+          </View>
         </MarginRow>
       ) : (
         meals.map((meal, i) => (
-          <MarginRow
+          <Pressable
             key={meal.id}
-            style={[styles.mealRow, { borderColor: colors.outlineVariant }]}
-            accessible
+            onPress={() => onEdit(meal)}
+            accessibilityRole="button"
             accessibilityLabel={`${meal.name}, ${formatInt(meal.calories)} kcal, đạm ${formatUpTo1(
               meal.protein,
             )} g, natri ${formatInt(meal.sodium)} mg, đường ${formatUpTo1(meal.sugar)} g`}
+            accessibilityHint="Sửa hoặc xoá món"
+            style={({ pressed }) =>
+              pressed ? { backgroundColor: colors.surfaceContainer } : null
+            }
             testID={`meal-row-${i}`}
           >
-            <View style={styles.mealLine}>
-              <ThemedText
-                variant="body"
-                numberOfLines={2}
-                style={styles.mealName}
-                testID={`meal-row-${i}-name`}
-              >
-                {meal.name}
+            <MarginRow
+              style={[styles.mealRow, { borderColor: colors.outlineVariant }]}
+            >
+              <View style={styles.mealLine}>
+                <ThemedText
+                  variant="body"
+                  numberOfLines={2}
+                  style={styles.mealName}
+                  testID={`meal-row-${i}-name`}
+                >
+                  {meal.name}
+                </ThemedText>
+                <ThemedText variant="body" numeric>
+                  {`${formatInt(meal.calories)} kcal`}
+                </ThemedText>
+              </View>
+              <ThemedText variant="bodySmall" color="onSurfaceVariant" numeric>
+                {`Đạm ${formatUpTo1(meal.protein)} g · Natri ${formatInt(
+                  meal.sodium,
+                )} mg · Đường ${formatUpTo1(meal.sugar)} g`}
               </ThemedText>
-              <ThemedText variant="body" numeric>
-                {`${formatInt(meal.calories)} kcal`}
-              </ThemedText>
-            </View>
-            <ThemedText variant="bodySmall" color="onSurfaceVariant" numeric>
-              {`Đạm ${formatUpTo1(meal.protein)} g · Natri ${formatInt(
-                meal.sodium,
-              )} mg · Đường ${formatUpTo1(meal.sugar)} g`}
-            </ThemedText>
-          </MarginRow>
+            </MarginRow>
+          </Pressable>
         ))
       )}
     </>
@@ -495,7 +559,20 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   // flexGrow: the page (and its red margin rule) fills the screen even on an empty day.
-  scroll: { flexGrow: 1, paddingVertical: space.m },
+  // Bottom padding keeps the last meal clear of the FAB.
+  scroll: { flexGrow: 1, paddingTop: space.m, paddingBottom: 96 },
+  fab: {
+    position: "absolute",
+    right: space.m,
+    bottom: space.m,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+  },
+  pressed: { opacity: 0.85 },
   dayBar: { minHeight: layout.touchTarget },
   dayRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   iconButton: {

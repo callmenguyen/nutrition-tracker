@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ComponentRef, type Ref, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,8 @@ import { layout, space, typeScale } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 type TextFieldProps = TextInputProps & {
+  /** Passed to the TextInput (React 19 ref prop), e.g. to focus it when a sheet opens. */
+  ref?: Ref<ComponentRef<typeof TextInput>>;
   label: string;
   error?: string;
   /** Adds a show/hide toggle for passwords. */

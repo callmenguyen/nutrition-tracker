@@ -265,3 +265,13 @@ Mẫu một mục:
   - Mock backend thêm `meal_entries` chỉ đọc (lọc `eq`, `order`) và `/__test/meal_entries` để seed; ghi món để #17 làm cùng `log_meal`.
   - Chưa làm: FAB "+", nút "Thêm món", sheet (#17); 3 dòng Nạp/Tiêu hao/Ròng (Workout, 0.2.0). Skill `impeccable` không có sẵn nên theo brief bằng tay; direction contract ghi vào brief.
 - **Kết quả:** PR `feat/16-today-tab` (Refs #16).
+
+## 2026-11-17 · `/kessie-skills:proj build #17` — Bottom sheet thêm/sửa/xoá món
+- **Yêu cầu:** Làm issue #17: sheet ghi món có gợi ý, sửa, xoá; DESIGN.md.
+- **Quyết định:**
+  - Sheet là `Modal` RN tự dựng (không thêm dependency); id món do client sinh (`uuidV4` từ `react-native-get-random-values`), giữ nguyên khi bấm Lưu lại sau lỗi (MEAL-17); lỗi lưu giữ sheet và dữ liệu, không cập nhật lạc quan (MEAL-16).
+  - Back: IME tự đóng bàn phím trước, rồi đóng gợi ý, rồi hỏi "Bỏ món này?" nếu có dữ liệu chưa lưu.
+  - `autoFocus` trong `Modal` không mở bàn phím trên Android (thấy trên máy thật): focus ô tên sau `onShow` + 250 ms.
+  - Mock backend (ADR-016): `rpc/log_meal`, `rpc/suggest_foods`, xoá `meal_entries`, `/__test/foods`, `/__test/fault` (drop / drop-after) để kiểm MEAL-16/17 trên máy.
+  - DESIGN.md và `.impeccable/design.json`: chủ dự án chọn cài skill impeccable rồi chạy documenter (đã cài vào `.claude/` của dự án).
+- **Kết quả:** PR `feat/17-meal-sheet`.

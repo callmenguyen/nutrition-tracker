@@ -75,3 +75,11 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
 - **Danh sách món:** tiêu đề "Món đã ăn" · mỗi dòng ≥ 48 dp: tên (tối đa 2 dòng) và kcal căn phải, dòng phụ "Đạm X g · Natri Y mg · Đường Z g" màu `onSurfaceVariant`; đường kẻ mảnh `outlineVariant` giữa các dòng như dòng kẻ vở.
 - **Trạng thái:** skeleton là các khối `surfaceContainer` đúng hình bố cục (không chạy hiệu ứng); lỗi tải: "Không tải được dữ liệu." + nút "Thử lại".
 - **Chưa làm ở #16:** FAB "+", nút "Thêm món" và sheet (#17); 3 dòng Nạp/Tiêu hao/Ròng (Workout, 0.2.0).
+
+## Direction contract (build #17, 2026-11-17)
+- **FAB "+":** 56 dp, góc bo 16 dp, nền `primaryContainer`, icon `add`, góc dưới phải cách mép 16 dp; chỉ hiện khi dữ liệu đã tải. Trạng thái trống có thêm nút chữ "Thêm món". Chạm vào dòng món mở sheet ở chế độ sửa.
+- **Sheet:** `Modal` RN trượt lên, nền mờ `onSurface` 32 %, sheet nền `background`, bo trên 28 dp, thanh kéo 32×4 dp. Tiêu đề cỡ Headline "Thêm món" / "Sửa món".
+- **Thứ tự trong sheet:** ô Tên món (bàn phím mở ngay khi sheet hiện) · tối đa 5 gợi ý ngay dưới ô, mỗi dòng ≥ 48 dp gồm tên và kcal · lưới 2 cột Calo / Đạm / Natri / Đường (bàn phím số; có dấu thập phân cho đạm và đường) · chip "Ngày dd/MM/yyyy" mở lịch M3 · hàng nút: "Xoá" (chữ, chỉ khi sửa) bên trái, "Lưu" (filled) bên phải.
+- **Lỗi:** viền đỏ + chữ dưới từng ô; lỗi lưu (mạng) hiện dưới form, sheet và dữ liệu giữ nguyên, không có món nào hiện như đã lưu.
+- **Back:** bàn phím → danh sách gợi ý → "Bỏ món này?" (Ở lại / Bỏ) nếu có dữ liệu chưa lưu. Chạm nền mờ đi cùng luồng.
+- **Xoá:** dialog "Xoá món này?" (Hủy / Xoá); không có Hoàn tác (chủ dự án chốt).
