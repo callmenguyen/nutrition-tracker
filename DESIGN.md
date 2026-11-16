@@ -201,7 +201,7 @@ Bảng màu giấy và mực: nền gần trắng, một màu mực tím chủ �
 
 ## Typography
 
-**Font:** Roboto (font hệ thống Android qua thang chữ M3; không nhúng font riêng)
+**Font:** font hệ thống của máy (Roboto trên Android gốc) theo thang chữ M3; không nhúng font riêng. Chủ dự án chốt 2026-11-17: tôn trọng font người dùng chọn trên máy, kể cả font kiểu viết tay của một số ROM (MIUI); vì vậy chữ số đều hàng (`tabular-nums`) chỉ được đảm bảo khi font hệ thống hỗ trợ.
 
 **Character:** Một họ chữ duy nhất, phân cấp bằng cỡ và độ đậm. Số dùng chữ số đều hàng (`tabular-nums`) để các giá trị thẳng cột.
 
@@ -263,6 +263,7 @@ Gọn, một hành động chính mỗi nhóm.
 ### Navigation
 - **Style:** thanh điều hướng dưới Material qua native tabs: Hôm nay (`menu_book`) · Biểu đồ (`bar_chart`) · Cài đặt (`settings`). Nền `paper-tint`, chỉ báo tab chọn `lavender-wash`, icon chọn `on-lavender-wash`, nhãn chọn `ink`, chưa chọn `ink-muted`.
 - **Thanh ngày:** nằm trong trang vở (không dùng app bar): mũi tên trái · ngày `dd/MM/yyyy` cỡ Title Medium (mở dialog chọn ngày M3, ngày tương lai bị khoá) · mũi tên phải (khoá ở hôm nay) · chip "Hôm nay".
+- **Dialog chọn ngày:** tên tháng, thứ và ngày đầu tuần theo ngôn ngữ của máy (chủ dự án chốt 2026-11-17); chỉ nút "Chọn" / "Hủy" do app đặt. Tiêu đề tiếng Anh mặc định ("Select date") bị ẩn.
 
 ### Bottom Sheet
 - Modal trượt lên, nền mờ `ink` 32 %, sheet nền `paper`, bo trên 28 dp, cao tối đa 90 %, thanh kéo `pencil-outline` 60 %. Tiêu đề cỡ Headline. Thứ tự: Tên món (bàn phím mở ngay) · tối đa 5 gợi ý trong khung hairline · lưới Calo / Đạm / Natri / Đường · chip ngày. Hàng nút (Xoá trái, Lưu phải) là footer cố định ngoài vùng cuộn, nên "Lưu" luôn nằm ngay trên bàn phím (gõ → chọn gợi ý → Lưu, ≤ 3 chạm); khi bàn phím đóng, footer chừa thêm inset dưới của thanh điều hướng. Lỗi lưu hiện dưới form, sheet và dữ liệu giữ nguyên.

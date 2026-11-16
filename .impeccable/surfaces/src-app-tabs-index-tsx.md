@@ -26,7 +26,7 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
   - mực chữ `#1F1A2E`.
 
   **Dynamic Color tắt.** Giao diện tối thiết kế riêng ("trang vở dưới đèn bàn"), không đảo màu tự động.
-- **Chữ:** Roboto theo thang chữ M3, chữ số đều bề ngang; không dùng font viết tay.
+- **Chữ:** Roboto theo thang chữ M3, chữ số đều bề ngang; không dùng font viết tay. *(Sửa 2026-11-17, chủ dự án chốt: app không nhúng font, dùng font hệ thống của máy, kể cả khi người dùng chọn font kiểu viết tay; xem DESIGN.md.)*
 - **Mật độ:** đơn vị 8 dp, giữa các khối 32 dp, dòng danh sách ≥ 48 dp.
 - **Dấu ấn riêng: cột lề đỏ.** Cột lề 40 dp bên trái, vạch đỏ mảnh để mờ; nội dung căn theo lề. Dấu trạng thái ("!" vượt ngưỡng, cảnh báo) chỉ nằm trong lề.
 - **Nguyên tắc giữ lại từ các hướng bị loại:**
@@ -83,3 +83,4 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
 - **Lỗi:** viền đỏ + chữ dưới từng ô; lỗi lưu (mạng) hiện dưới form, sheet và dữ liệu giữ nguyên, không có món nào hiện như đã lưu.
 - **Back:** bàn phím → danh sách gợi ý → "Bỏ món này?" (Ở lại / Bỏ) nếu có dữ liệu chưa lưu. Chạm nền mờ đi cùng luồng.
 - **Xoá:** dialog "Xoá món này?" (Hủy / Xoá); không có Hoàn tác (chủ dự án chốt).
+- **Sau finish review (2026-11-17):** "Lưu" là footer cố định ngoài vùng cuộn để luôn nằm trên bàn phím; footer chừa inset dưới của thanh điều hướng; vạch lề chạy hết trang (khoảng trống cho FAB nằm trong trang); dấu "!" căn giữa trong 32 dp bên trái vạch lề và theo dòng đầu của hàng; nút chữ và mũi tên "‹" lùi 12 dp để thẳng mép nội dung. Dialog chọn ngày theo ngôn ngữ của máy (chủ dự án chốt).

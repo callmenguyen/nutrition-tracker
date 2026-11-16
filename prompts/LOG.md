@@ -273,5 +273,6 @@ Mẫu một mục:
   - Back: IME tự đóng bàn phím trước, rồi đóng gợi ý, rồi hỏi "Bỏ món này?" nếu có dữ liệu chưa lưu.
   - `autoFocus` trong `Modal` không mở bàn phím trên Android (thấy trên máy thật): focus ô tên sau `onShow` + 250 ms.
   - Mock backend (ADR-016): `rpc/log_meal`, `rpc/suggest_foods`, xoá `meal_entries`, `/__test/foods`, `/__test/fault` (drop / drop-after) để kiểm MEAL-16/17 trên máy.
-  - DESIGN.md và `.impeccable/design.json`: chủ dự án chọn cài skill impeccable rồi chạy documenter (đã cài vào `.claude/` của dự án).
+  - DESIGN.md và `.impeccable/design.json`: chủ dự án chọn cài skill impeccable rồi chạy documenter (đã cài vào `.claude/` của dự án); `.claude/` được gitignore.
+  - Finish review (impeccable): sửa trong PR này "Lưu" trên bàn phím, inset thanh điều hướng, vạch lề hết trang, vị trí dấu "!", căn nút chữ. Chủ dự án chốt: **giữ font hệ thống** (không nhúng Roboto) và **lịch chọn ngày theo ngôn ngữ máy**.
 - **Kết quả:** PR `feat/17-meal-sheet`.
