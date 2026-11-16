@@ -91,6 +91,16 @@ def seed_meals(email: str, entries: list[dict]) -> None:
     mock_api("POST", "/meal_entries", {"email": email, "entries": entries})
 
 
+def saved_foods(email: str) -> list[dict]:
+    """The user's saved foods in the mock (checks MEAL-05/06 before the Món đã lưu screen exists)."""
+    return mock_api("GET", f"/foods?email={urllib.parse.quote(email)}")
+
+
+def fault(path: str, mode: str = "drop") -> None:
+    """Breaks the next request to `path`: "drop" writes nothing, "drop-after" writes then hangs up."""
+    mock_api("POST", "/fault", {"path": path, "mode": mode})
+
+
 def outbox(email: str) -> list[dict]:
     """Emails the mock backend "sent" to this address: [{"type": "signup"|"recovery", "link": ...}]."""
     return mock_api("GET", f"/outbox?email={urllib.parse.quote(email)}")

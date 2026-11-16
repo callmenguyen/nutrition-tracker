@@ -1,7 +1,13 @@
 import { DatePickerDialog, Host } from "@expo/ui/jetpack-compose";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/form";
@@ -39,28 +45,64 @@ type Props = {
   today: Day;
   onChangeDay: (day: Day) => void;
   state: TodayState;
+  /** Opens the add-meal sheet for the viewed day (FAB "+" and the empty state's "Thêm món"). */
+  onAdd: () => void;
+  /** Opens the sheet to edit or delete a meal (tap on its row). */
+  onEdit: (meal: MealEntry) => void;
 };
 
 /**
  * Tab Hôm nay (MealLog.md §2, brief .impeccable/surfaces/src-app-tabs-index-tsx.md): day bar,
  * Calo block, three nutrient rows and the day's meals on a notebook page. Presentational only.
  */
-export function TodayView({ day, today, onChangeDay, state }: Props) {
+export function TodayView({
+  day,
+  today,
+  onChangeDay,
+  state,
+  onAdd,
+  onEdit,
+}: Props) {
+  const { colors } = useTheme();
   return (
     <ThemedView style={styles.flex} testID="screen-today">
       <SafeAreaView edges={["top"]} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <NotebookPage>
+          <NotebookPage style={styles.page}>
             <DayBar day={day} today={today} onChangeDay={onChangeDay} />
             {state.kind === "loading" ? (
               <Skeleton />
             ) : state.kind === "error" ? (
               <LoadError onRetry={state.onRetry} />
             ) : (
-              <DayContent meals={state.meals} targets={state.targets} />
+              <DayContent
+                meals={state.meals}
+                targets={state.targets}
+                onAdd={onAdd}
+                onEdit={onEdit}
+              />
             )}
           </NotebookPage>
         </ScrollView>
+        {state.kind === "ready" ? (
+          <Pressable
+            onPress={onAdd}
+            accessibilityRole="button"
+            accessibilityLabel="Thêm món"
+            style={({ pressed }) => [
+              styles.fab,
+              { backgroundColor: colors.primaryContainer },
+              pressed && styles.pressed,
+            ]}
+            testID="today-add"
+          >
+            <SymbolView
+              name={{ ios: "plus", android: "add", web: "add" }}
+              tintColor={colors.onPrimaryContainer}
+              size={24}
+            />
+          </Pressable>
+        ) : null}
       </SafeAreaView>
     </ThemedView>
   );
@@ -92,6 +134,7 @@ function DayBar({
           label="Ngày trước"
           onPress={() => onChangeDay(addDays(day, -1))}
           testID="today-prev"
+          style={styles.firstIcon}
         />
         <Pressable
           onPress={() => setPicking(true)}
@@ -156,7 +199,9 @@ function IconButton({
   onPress,
   disabled,
   testID,
+  style,
 }: {
+  style?: ViewStyle;
   icon: "chevron_left" | "chevron_right";
   label: string;
   onPress: () => void;
@@ -171,7 +216,7 @@ function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
-      style={[styles.iconButton, disabled && styles.disabled]}
+      style={[styles.iconButton, disabled && styles.disabled, style]}
       testID={testID}
     >
       <SymbolView
@@ -191,9 +236,13 @@ function IconButton({
 function DayContent({
   meals,
   targets,
+  onAdd,
+  onEdit,
 }: {
   meals: MealEntry[];
   targets: Targets;
+  onAdd: () => void;
+  onEdit: (meal: MealEntry) => void;
 }) {
   const totals = sumMeals(meals);
   return (
@@ -220,7 +269,7 @@ function DayContent({
         total={totals.sugar}
         target={targets.sugar}
       />
-      <MealList meals={meals} />
+      <MealList meals={meals} onAdd={onAdd} onEdit={onEdit} />
     </>
   );
 }
@@ -348,6 +397,7 @@ function NutrientRow({
     <MarginRow
       {...rowProps}
       style={styles.nutrient}
+      firstLineHeight={28}
       accessible
       accessibilityLabel={`${label}, ${value}${over ? `, ${over}` : ""}`}
       testID={`today-${nutrient}`}
@@ -383,7 +433,15 @@ function NutrientRow({
   );
 }
 
-function MealList({ meals }: { meals: MealEntry[] }) {
+function MealList({
+  meals,
+  onAdd,
+  onEdit,
+}: {
+  meals: MealEntry[];
+  onAdd: () => void;
+  onEdit: (meal: MealEntry) => void;
+}) {
   const { colors } = useTheme();
   return (
     <>
@@ -401,37 +459,53 @@ function MealList({ meals }: { meals: MealEntry[] }) {
           >
             Chưa có món nào cho ngày này
           </ThemedText>
+          <View style={styles.retry}>
+            <Button
+              label="Thêm món"
+              variant="text"
+              onPress={onAdd}
+              testID="today-empty-add"
+            />
+          </View>
         </MarginRow>
       ) : (
         meals.map((meal, i) => (
-          <MarginRow
+          <Pressable
             key={meal.id}
-            style={[styles.mealRow, { borderColor: colors.outlineVariant }]}
-            accessible
+            onPress={() => onEdit(meal)}
+            accessibilityRole="button"
             accessibilityLabel={`${meal.name}, ${formatInt(meal.calories)} kcal, đạm ${formatUpTo1(
               meal.protein,
             )} g, natri ${formatInt(meal.sodium)} mg, đường ${formatUpTo1(meal.sugar)} g`}
+            accessibilityHint="Sửa hoặc xoá món"
+            style={({ pressed }) =>
+              pressed ? { backgroundColor: colors.surfaceContainer } : null
+            }
             testID={`meal-row-${i}`}
           >
-            <View style={styles.mealLine}>
-              <ThemedText
-                variant="body"
-                numberOfLines={2}
-                style={styles.mealName}
-                testID={`meal-row-${i}-name`}
-              >
-                {meal.name}
+            <MarginRow
+              style={[styles.mealRow, { borderColor: colors.outlineVariant }]}
+            >
+              <View style={styles.mealLine}>
+                <ThemedText
+                  variant="body"
+                  numberOfLines={2}
+                  style={styles.mealName}
+                  testID={`meal-row-${i}-name`}
+                >
+                  {meal.name}
+                </ThemedText>
+                <ThemedText variant="body" numeric>
+                  {`${formatInt(meal.calories)} kcal`}
+                </ThemedText>
+              </View>
+              <ThemedText variant="bodySmall" color="onSurfaceVariant" numeric>
+                {`Đạm ${formatUpTo1(meal.protein)} g · Natri ${formatInt(
+                  meal.sodium,
+                )} mg · Đường ${formatUpTo1(meal.sugar)} g`}
               </ThemedText>
-              <ThemedText variant="body" numeric>
-                {`${formatInt(meal.calories)} kcal`}
-              </ThemedText>
-            </View>
-            <ThemedText variant="bodySmall" color="onSurfaceVariant" numeric>
-              {`Đạm ${formatUpTo1(meal.protein)} g · Natri ${formatInt(
-                meal.sodium,
-              )} mg · Đường ${formatUpTo1(meal.sugar)} g`}
-            </ThemedText>
-          </MarginRow>
+            </MarginRow>
+          </Pressable>
         ))
       )}
     </>
@@ -495,7 +569,21 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   // flexGrow: the page (and its red margin rule) fills the screen even on an empty day.
-  scroll: { flexGrow: 1, paddingVertical: space.m },
+  scroll: { flexGrow: 1, paddingTop: space.m },
+  // Room for the FAB inside the page, so the margin rule still runs to the bottom.
+  page: { paddingBottom: 96 },
+  fab: {
+    position: "absolute",
+    right: space.m,
+    bottom: space.m,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+  },
+  pressed: { opacity: 0.85 },
   dayBar: { minHeight: layout.touchTarget },
   dayRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" },
   iconButton: {
@@ -537,5 +625,8 @@ const styles = StyleSheet.create({
   mealLine: { flexDirection: "row", alignItems: "flex-start" },
   mealName: { flex: 1, paddingRight: space.s },
   skeleton: { borderRadius: 4, marginTop: space.s },
-  retry: { alignSelf: "flex-start", marginTop: space.s },
+  // The text button's 12 dp padding would push its label off the content edge.
+  retry: { alignSelf: "flex-start", marginTop: space.s, marginLeft: -12 },
+  // Same for "‹": its glyph sits 12 dp inside the 48 dp touch target.
+  firstIcon: { marginLeft: -12 },
 });

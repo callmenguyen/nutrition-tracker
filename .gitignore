@@ -61,3 +61,6 @@ e2e/mobile-appium/config.json
 e2e/mobile-appium/.venv/
 __pycache__/
 .pytest_cache/
+
+# Claude Code project skills/agents installed locally (impeccable); not part of the repo
+.claude/

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ComponentRef, type Ref, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,8 @@ import { layout, space, typeScale } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 type TextFieldProps = TextInputProps & {
+  /** Passed to the TextInput (React 19 ref prop), e.g. to focus it when a sheet opens. */
+  ref?: Ref<ComponentRef<typeof TextInput>>;
   label: string;
   error?: string;
   /** Adds a show/hide toggle for passwords. */
@@ -130,6 +132,8 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         filled && { backgroundColor: colors.primary },
+        // M3: text buttons use 12 dp side padding (filled: 24 dp).
+        !filled && styles.textButton,
         inactive && filled && { opacity: 0.38 },
         pressed && !inactive && { opacity: 0.85 },
       ]}
@@ -191,6 +195,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: space.s,
   },
+  textButton: { paddingHorizontal: 12 },
   button: {
     minHeight: layout.touchTarget,
     borderRadius: 20,

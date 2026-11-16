@@ -23,7 +23,7 @@ const TOKEN_TTL_S = 3600;
 const MIN_PASSWORD_LENGTH = 6; // Supabase default
 /** Tables the app reads and writes; each has one row per user (primary key user_id). */
 const TABLES = new Set(["profiles", "goals", "user_settings"]);
-/** Many rows per user, read-only for now (#16); writes go through log_meal in #17. */
+/** Many rows per user: read, delete, and written only through rpc/log_meal (like the app). */
 const MEAL_ENTRIES = "meal_entries";
 
 type User = {
@@ -53,6 +53,9 @@ type MockState = {
   outbox: Mail[];
   tables: Map<string, Map<string, Row>>;
   mealEntries: Row[];
+  foods: Row[];
+  /** One-shot network fault for the next request to `path` (MEAL-16, MEAL-17). */
+  fault: { path: string; mode: "drop" | "drop-after" } | null;
 };
 
 const emptyState = (): MockState => ({
@@ -63,9 +66,32 @@ const emptyState = (): MockState => ({
   outbox: [],
   tables: new Map([...TABLES].map((t) => [t, new Map()])),
   mealEntries: [],
+  foods: [],
+  fault: null,
 });
 
 const now = () => new Date().toISOString();
+
+/** Strictly increasing timestamps, so created_at / last_used_at order is stable within one ms. */
+let lastTick = 0;
+const tick = () => {
+  lastTick = Math.max(Date.now(), lastTick + 1);
+  return new Date(lastTick).toISOString();
+};
+
+/** Copies of src/domain/food-name.ts (the mock runs on plain Node); parity is tested in Jest. */
+export const cleanFoodName = (name: string) => name.trim().replace(/\s+/g, " ");
+export const normalizeFoodName = (name: string) =>
+  cleanFoodName(name)
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
+const oneDecimal = (n: unknown) =>
+  typeof n === "number" && Math.round(n * 10) / 10 === n;
+const intIn = (n: unknown, max: number) =>
+  Number.isInteger(n) && (n as number) >= 0 && (n as number) <= max;
 const normEmail = (v: unknown) =>
   typeof v === "string" ? v.trim().toLowerCase() : "";
 const str = (v: unknown) => (typeof v === "string" ? v : "");
@@ -405,6 +431,7 @@ export function createMockBackend(): { server: Server } {
     body: unknown,
   ) {
     const table = url.pathname.slice("/rest/v1/".length);
+    if (table.startsWith("rpc/")) return rpc(req, res, table.slice(4), body);
     const isMeals = table === MEAL_ENTRIES;
     const rows = state.tables.get(table);
     if (!rows && !isMeals) return notMocked(req, res, url.pathname);
@@ -492,7 +519,152 @@ export function createMockBackend(): { server: Server } {
         : send(res, 201);
     }
 
+    if (req.method === "DELETE" && isMeals) {
+      const filters = [...url.searchParams].map(([k, v]) => {
+        if (!v.startsWith("eq.")) return null;
+        return [k, v.slice(3)] as const;
+      });
+      if (filters.length === 0 || filters.some((f) => f === null)) {
+        return notMocked(req, res, `${url.pathname}?${url.searchParams}`);
+      }
+      // RLS: only the caller's own rows; anything else is silently left alone, like PostgREST.
+      state.mealEntries = state.mealEntries.filter(
+        (r) =>
+          r.user_id !== userId ||
+          !filters.every((f) => String(r[f![0]]) === f![1]),
+      );
+      return send(res, 204);
+    }
+
     return notMocked(req, res, url.pathname);
+  }
+
+  /** The two SQL functions the app calls (supabase/migrations/…_meal_entries_foods.sql). */
+  function rpc(
+    req: IncomingMessage,
+    res: ServerResponse,
+    name: string,
+    body: unknown,
+  ) {
+    const userId = userIdFrom(req);
+    if (req.method !== "POST") return notMocked(req, res, `rpc/${name}`);
+    if (!userId) {
+      return send(res, 401, { code: "42501", message: "not authenticated" });
+    }
+    const p = body as Json;
+
+    if (name === "log_meal") {
+      const mealName = cleanFoodName(str(p.p_name));
+      const eatenOn = str(p.p_eaten_on);
+      const latest = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      if (
+        !intIn(p.p_calories_kcal, 5000) ||
+        !intIn(p.p_sodium_mg, 20000) ||
+        !oneDecimal(p.p_protein_g) ||
+        !oneDecimal(p.p_sugar_g) ||
+        (p.p_protein_g as number) < 0 ||
+        (p.p_protein_g as number) > 500 ||
+        (p.p_sugar_g as number) < 0 ||
+        (p.p_sugar_g as number) > 500 ||
+        mealName.length < 1 ||
+        mealName.length > 100 ||
+        // p_id is a uuid (not null) in the SQL signature; the app always sends one.
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          str(p.p_id),
+        ) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(eatenOn)
+      ) {
+        return send(res, 400, {
+          code: "23514",
+          message: "invalid nutrition values",
+        });
+      }
+      // Server tolerance: the client blocks future days exactly; the server allows UTC + 1 day.
+      if (eatenOn > latest) {
+        return send(res, 400, {
+          code: "23514",
+          message: `eaten_on ${eatenOn} is in the future`,
+        });
+      }
+      const values = {
+        eaten_on: eatenOn,
+        name: mealName,
+        calories_kcal: p.p_calories_kcal,
+        protein_g: p.p_protein_g,
+        sodium_mg: p.p_sodium_mg,
+        sugar_g: p.p_sugar_g,
+      };
+      const existing = state.mealEntries.find((r) => r.id === p.p_id);
+      if (existing && existing.user_id !== userId) {
+        return send(res, 409, {
+          code: "23505",
+          message: "meal id already in use",
+        });
+      }
+      if (existing) {
+        const same = Object.entries(values).every(
+          ([k, v]) => existing[k] === v,
+        );
+        if (same) return send(res, 200, existing); // MEAL-17: identical retry, not another use
+        Object.assign(existing, values); // created_at unchanged: editing keeps the order (MEAL-11)
+      }
+      const row = existing ?? {
+        id: str(p.p_id),
+        user_id: userId,
+        created_at: tick(),
+        ...values,
+      };
+      if (!existing) state.mealEntries.push(row);
+
+      const normalized = normalizeFoodName(mealName);
+      const food = state.foods.find(
+        (f) => f.user_id === userId && f.name_normalized === normalized,
+      );
+      const foodValues = {
+        name: mealName,
+        calories_kcal: values.calories_kcal,
+        protein_g: values.protein_g,
+        sodium_mg: values.sodium_mg,
+        sugar_g: values.sugar_g,
+        last_used_at: tick(),
+      };
+      if (food) {
+        Object.assign(food, foodValues, {
+          use_count: (food.use_count as number) + 1,
+        });
+      } else {
+        state.foods.push({
+          id: randomUUID(),
+          user_id: userId,
+          name_normalized: normalized,
+          use_count: 1,
+          ...foodValues,
+        });
+      }
+      return send(res, 200, row);
+    }
+
+    if (name === "suggest_foods") {
+      const q = normalizeFoodName(str(p.p_query));
+      if (!q) return send(res, 200, []);
+      const matches = state.foods
+        .filter(
+          (f) => f.user_id === userId && String(f.name_normalized).includes(q),
+        )
+        .sort((a, b) => {
+          const aStarts = String(a.name_normalized).startsWith(q) ? 0 : 1;
+          const bStarts = String(b.name_normalized).startsWith(q) ? 0 : 1;
+          if (aStarts !== bStarts) return aStarts - bStarts;
+          if (a.last_used_at !== b.last_used_at) {
+            return String(a.last_used_at) > String(b.last_used_at) ? -1 : 1;
+          }
+          return String(a.name_normalized) < String(b.name_normalized) ? -1 : 1;
+        })
+        .slice(0, 5);
+      return send(res, 200, matches);
+    }
+
+    return notMocked(req, res, `rpc/${name}`);
   }
 
   function testControl(
@@ -524,17 +696,30 @@ export function createMockBackend(): { server: Server } {
         const entries = Array.isArray(body.entries)
           ? (body.entries as Row[])
           : [];
-        const base = Date.now();
-        const saved = entries.map((entry, i) => ({
+        const saved = entries.map((entry) => ({
           ...entry,
           id: randomUUID(),
           user_id: user.id,
-          created_at: new Date(
-            base + state.mealEntries.length + i,
-          ).toISOString(),
+          created_at: tick(),
         }));
         state.mealEntries.push(...saved);
         return send(res, 201, saved);
+      }
+      case "GET /__test/foods": {
+        // Saved foods of one user, for tests that check MEAL-05/06 without the Món đã lưu screen.
+        const user = findByEmail(normEmail(url.searchParams.get("email")));
+        return send(
+          res,
+          200,
+          state.foods.filter((f) => user && f.user_id === user.id),
+        );
+      }
+      case "POST /__test/fault": {
+        const mode = body.mode === "drop-after" ? "drop-after" : "drop";
+        if (!str(body.path))
+          return send(res, 400, { message: "path is required" });
+        state.fault = { path: str(body.path), mode };
+        return send(res, 204);
       }
       case "GET /__test/outbox": {
         const to = normEmail(url.searchParams.get("email"));
@@ -560,6 +745,22 @@ export function createMockBackend(): { server: Server } {
         `[mock-backend] ${req.method} ${url.pathname} → ${res.statusCode}`,
       );
     });
+    const fault = state.fault?.path === url.pathname ? state.fault : null;
+    if (fault) {
+      state.fault = null;
+      console.log(
+        `[mock-backend] fault ${fault.mode}: ${req.method} ${url.pathname}`,
+      );
+      if (fault.mode === "drop") {
+        req.socket.destroy(); // the client sees a network error; nothing is written
+        return;
+      }
+      // "drop-after": handle the request (it is written), then cut the connection instead of answering.
+      res.end = (() => {
+        req.socket.destroy();
+        return res;
+      }) as typeof res.end;
+    }
     readJson(req)
       .then((body) => {
         if (url.pathname.startsWith("/__test/")) {

@@ -26,7 +26,7 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
   - mực chữ `#1F1A2E`.
 
   **Dynamic Color tắt.** Giao diện tối thiết kế riêng ("trang vở dưới đèn bàn"), không đảo màu tự động.
-- **Chữ:** Roboto theo thang chữ M3, chữ số đều bề ngang; không dùng font viết tay.
+- **Chữ:** Roboto theo thang chữ M3, chữ số đều bề ngang; không dùng font viết tay. *(Sửa 2026-11-17, chủ dự án chốt: app không nhúng font, dùng font hệ thống của máy, kể cả khi người dùng chọn font kiểu viết tay; xem DESIGN.md.)*
 - **Mật độ:** đơn vị 8 dp, giữa các khối 32 dp, dòng danh sách ≥ 48 dp.
 - **Dấu ấn riêng: cột lề đỏ.** Cột lề 40 dp bên trái, vạch đỏ mảnh để mờ; nội dung căn theo lề. Dấu trạng thái ("!" vượt ngưỡng, cảnh báo) chỉ nằm trong lề.
 - **Nguyên tắc giữ lại từ các hướng bị loại:**
@@ -75,3 +75,12 @@ Thế giới hình ảnh chỉ góp 4 thứ; bố cục, điều hướng và co
 - **Danh sách món:** tiêu đề "Món đã ăn" · mỗi dòng ≥ 48 dp: tên (tối đa 2 dòng) và kcal căn phải, dòng phụ "Đạm X g · Natri Y mg · Đường Z g" màu `onSurfaceVariant`; đường kẻ mảnh `outlineVariant` giữa các dòng như dòng kẻ vở.
 - **Trạng thái:** skeleton là các khối `surfaceContainer` đúng hình bố cục (không chạy hiệu ứng); lỗi tải: "Không tải được dữ liệu." + nút "Thử lại".
 - **Chưa làm ở #16:** FAB "+", nút "Thêm món" và sheet (#17); 3 dòng Nạp/Tiêu hao/Ròng (Workout, 0.2.0).
+
+## Direction contract (build #17, 2026-11-17)
+- **FAB "+":** 56 dp, góc bo 16 dp, nền `primaryContainer`, icon `add`, góc dưới phải cách mép 16 dp; chỉ hiện khi dữ liệu đã tải. Trạng thái trống có thêm nút chữ "Thêm món". Chạm vào dòng món mở sheet ở chế độ sửa.
+- **Sheet:** `Modal` RN trượt lên, nền mờ `onSurface` 32 %, sheet nền `background`, bo trên 28 dp, thanh kéo 32×4 dp. Tiêu đề cỡ Headline "Thêm món" / "Sửa món".
+- **Thứ tự trong sheet:** ô Tên món (bàn phím mở ngay khi sheet hiện) · tối đa 5 gợi ý ngay dưới ô, mỗi dòng ≥ 48 dp gồm tên và kcal · lưới 2 cột Calo / Đạm / Natri / Đường (bàn phím số; có dấu thập phân cho đạm và đường) · chip "Ngày dd/MM/yyyy" mở lịch M3 · hàng nút: "Xoá" (chữ, chỉ khi sửa) bên trái, "Lưu" (filled) bên phải.
+- **Lỗi:** viền đỏ + chữ dưới từng ô; lỗi lưu (mạng) hiện dưới form, sheet và dữ liệu giữ nguyên, không có món nào hiện như đã lưu.
+- **Back:** bàn phím → danh sách gợi ý → "Bỏ món này?" (Ở lại / Bỏ) nếu có dữ liệu chưa lưu. Chạm nền mờ đi cùng luồng.
+- **Xoá:** dialog "Xoá món này?" (Hủy / Xoá); không có Hoàn tác (chủ dự án chốt).
+- **Sau finish review (2026-11-17):** "Lưu" là footer cố định ngoài vùng cuộn để luôn nằm trên bàn phím; footer chừa inset dưới của thanh điều hướng; vạch lề chạy hết trang (khoảng trống cho FAB nằm trong trang); dấu "!" căn giữa trong 32 dp bên trái vạch lề và theo dòng đầu của hàng; nút chữ và mũi tên "‹" lùi 12 dp để thẳng mép nội dung. Dialog chọn ngày theo ngôn ngữ của máy (chủ dự án chốt).

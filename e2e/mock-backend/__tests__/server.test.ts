@@ -17,7 +17,11 @@ import {
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AddressInfo } from "node:net";
 
-import { createMockBackend } from "../server";
+import {
+  cleanFoodName as domainClean,
+  normalizeFoodName as domainNormalize,
+} from "../../../src/domain/food-name";
+import { cleanFoodName, createMockBackend, normalizeFoodName } from "../server";
 
 const { server } = createMockBackend();
 let base = "";
@@ -318,7 +322,7 @@ describe("tables", () => {
   });
 });
 
-describe("meal_entries (read-only until #17)", () => {
+describe("meal_entries reads", () => {
   const entry = (name: string, eaten_on: string) => ({
     eaten_on,
     name,
@@ -392,7 +396,7 @@ describe("meal_entries (read-only until #17)", () => {
     expect((await mealsOf(device(), "2026-11-16")).data).toEqual([]);
   });
 
-  it("does not accept writes yet (log_meal comes with #17)", async () => {
+  it("accepts writes only through log_meal, like the app", async () => {
     const { client } = await signedIn("a@example.com");
     const { status } = await client
       .from("meal_entries")
@@ -431,5 +435,214 @@ describe("test control", () => {
       body: JSON.stringify({ email: "a@example.com", password: "x" }),
     });
     expect(res.status).toBe(409);
+  });
+});
+
+describe("log_meal, suggest_foods, delete (#17)", () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const args = (over: object = {}) => ({
+    p_id: crypto.randomUUID(),
+    p_eaten_on: today,
+    p_name: "Bún nạm",
+    p_calories_kcal: 450,
+    p_protein_g: 25,
+    p_sodium_mg: 1800,
+    p_sugar_g: 6,
+    ...over,
+  });
+  const foodsOf = async (email: string) =>
+    (
+      await testApi(`/foods?email=${encodeURIComponent(email)}`)
+    ).json() as Promise<
+      { name: string; calories_kcal: number; use_count: number }[]
+    >;
+  const mealsToday = (client: SupabaseClient) =>
+    client
+      .from("meal_entries")
+      .select("id, name, calories_kcal")
+      .eq("eaten_on", today)
+      .order("created_at");
+
+  it("matches src/domain/food-name for Vietnamese text and đ", () => {
+    for (const sample of [
+      "  bún   NẠM ",
+      "Đậu phụ sốt cà",
+      "Phở bò tái",
+      "Cơm\tgà",
+      "ĐƯỜNG",
+    ]) {
+      expect(normalizeFoodName(sample)).toBe(domainNormalize(sample));
+      expect(cleanFoodName(sample)).toBe(domainClean(sample));
+    }
+  });
+
+  it("MEAL-02/05: logs a meal and keeps the saved food at the latest values", async () => {
+    const { client } = await signedIn("a@example.com");
+    const first = await client.rpc(
+      "log_meal",
+      args({ p_eaten_on: "2026-11-15" }),
+    );
+    expect(first.error).toBeNull();
+    expect(first.data).toMatchObject({ name: "Bún nạm", calories_kcal: 450 });
+    await client.rpc("log_meal", args({ p_calories_kcal: 500 }));
+
+    const foods = await foodsOf("a@example.com");
+    expect(foods).toHaveLength(1);
+    expect(foods[0]).toMatchObject({ calories_kcal: 500, use_count: 2 });
+    const yesterday = await client
+      .from("meal_entries")
+      .select("calories_kcal")
+      .eq("eaten_on", "2026-11-15");
+    expect(yesterday.data).toEqual([{ calories_kcal: 450 }]); // copies, not links
+  });
+
+  it("MEAL-06: one saved food per normalized name; display name follows the latest", async () => {
+    const { client } = await signedIn("a@example.com");
+    await client.rpc("log_meal", args());
+    await client.rpc("log_meal", args({ p_name: "bún  NẠM " }));
+    const foods = await foodsOf("a@example.com");
+    expect(foods.map((f) => f.name)).toEqual(["bún NẠM"]);
+  });
+
+  it("MEAL-11/17: editing keeps the order; an identical retry is not another use", async () => {
+    const { client } = await signedIn("a@example.com");
+    const a = args({ p_name: "Món 1" });
+    await client.rpc("log_meal", a);
+    await client.rpc("log_meal", args({ p_name: "Món 2" }));
+    await client.rpc("log_meal", { ...a, p_calories_kcal: 999 }); // edit the first
+    await client.rpc("log_meal", { ...a, p_calories_kcal: 999 }); // identical retry
+    const { data } = await mealsToday(client);
+    expect(data!.map((m) => [m.name, m.calories_kcal])).toEqual([
+      ["Món 1", 999],
+      ["Món 2", 450],
+    ]);
+    const mon1 = (await foodsOf("a@example.com")).find(
+      (f) => f.name === "Món 1",
+    );
+    expect(mon1?.use_count).toBe(2);
+  });
+
+  it("MEAL-08/10: rejects bad values and days past UTC + 1", async () => {
+    const { client } = await signedIn("a@example.com");
+    const inTwoDays = new Date(Date.now() + 2 * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    for (const bad of [
+      { p_calories_kcal: 5001 },
+      { p_calories_kcal: 12.5 },
+      { p_protein_g: 1.25 },
+      { p_sodium_mg: -1 },
+      { p_name: "  " },
+      { p_eaten_on: inTwoDays },
+    ]) {
+      const { error } = await client.rpc("log_meal", args(bad));
+      expect(error?.code).toBe("23514");
+    }
+    expect((await mealsToday(client)).data).toEqual([]);
+  });
+
+  it("requires a uuid p_id, like the SQL signature", async () => {
+    const { client } = await signedIn("a@example.com");
+    for (const p_id of [undefined, "", "not-a-uuid"]) {
+      const { error } = await client.rpc("log_meal", { ...args(), p_id });
+      expect(error?.code).toBe("23514");
+    }
+  });
+
+  it("refuses an id that belongs to another user", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    const shared = args();
+    await a.client.rpc("log_meal", shared);
+    const { error } = await b.client.rpc("log_meal", shared);
+    expect(error?.code).toBe("23505");
+  });
+
+  it("MEAL-03/04/14: suggestions match without diacritics, starts-with first, at most 5", async () => {
+    const { client } = await signedIn("a@example.com");
+    for (const name of [
+      "Bún nạm",
+      "Bánh mì",
+      "Nạm bò",
+      "Bún chả",
+      "Bún riêu",
+      "Bún bò",
+      "Bún mắm",
+      "Phở",
+    ]) {
+      await client.rpc("log_meal", args({ p_name: name }));
+    }
+    const nam = await client.rpc("suggest_foods", { p_query: "nạm" });
+    expect((nam.data as { name: string }[]).map((f) => f.name)).toEqual([
+      "Nạm bò",
+      "Bún nạm",
+    ]);
+
+    const bun = await client.rpc("suggest_foods", { p_query: "bun" });
+    // Most recently used first: the last five "Bún …" logged, newest first.
+    expect((bun.data as { name: string }[]).map((f) => f.name)).toEqual([
+      "Bún mắm",
+      "Bún bò",
+      "Bún riêu",
+      "Bún chả",
+      "Bún nạm",
+    ]);
+    expect((await client.rpc("suggest_foods", { p_query: "  " })).data).toEqual(
+      [],
+    );
+  });
+
+  it("MEAL-15: suggestions and deletes stay within the owner's data", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    const meal = args();
+    await a.client.rpc("log_meal", meal);
+    expect(
+      (await b.client.rpc("suggest_foods", { p_query: "bun" })).data,
+    ).toEqual([]);
+    await b.client.from("meal_entries").delete().eq("id", meal.p_id);
+    expect((await mealsToday(a.client)).data).toHaveLength(1);
+  });
+
+  it("MEAL-12: deleting a meal keeps its saved food", async () => {
+    const { client } = await signedIn("a@example.com");
+    const meal = args();
+    await client.rpc("log_meal", meal);
+    const { error } = await client
+      .from("meal_entries")
+      .delete()
+      .eq("id", meal.p_id);
+    expect(error).toBeNull();
+    expect((await mealsToday(client)).data).toEqual([]);
+    expect(await foodsOf("a@example.com")).toHaveLength(1);
+  });
+
+  it("MEAL-16: a dropped request writes nothing and reaches the client as a network error", async () => {
+    const { client } = await signedIn("a@example.com");
+    await testApi("/fault", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: "/rest/v1/rpc/log_meal", mode: "drop" }),
+    });
+    const { error } = await client.rpc("log_meal", args());
+    expect(error?.message).toMatch(/fetch|network|socket/i);
+    expect((await mealsToday(client)).data).toEqual([]);
+  });
+
+  it("MEAL-17: written but unanswered, then sent again with the same id: one meal", async () => {
+    const { client } = await signedIn("a@example.com");
+    await testApi("/fault", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: "/rest/v1/rpc/log_meal",
+        mode: "drop-after",
+      }),
+    });
+    const meal = args();
+    expect((await client.rpc("log_meal", meal)).error).not.toBeNull();
+    expect((await client.rpc("log_meal", meal)).error).toBeNull();
+    expect((await mealsToday(client)).data).toHaveLength(1);
+    expect((await foodsOf("a@example.com"))[0].use_count).toBe(1);
   });
 });

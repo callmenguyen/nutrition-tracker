@@ -1,0 +1,729 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T19:48:24+00:00",
+  "title": "Design System: Nutrition Tracker",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Giấy",
+        "canonical": "#FBFBFE",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#252526",
+          "#424243",
+          "#616163",
+          "#828284",
+          "#A5A5A7",
+          "#C9C9CA",
+          "#EEEEEF"
+        ]
+      },
+      "paper-tint": {
+        "role": "neutral",
+        "displayName": "Giấy ngả tím",
+        "canonical": "#EEEBFA",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#252429",
+          "#424149",
+          "#625F6B",
+          "#83808C",
+          "#A5A3AD",
+          "#C9C8CF",
+          "#EEEEF2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Mực",
+        "canonical": "#1F1A2E",
+        "tonalRamp": [
+          "#0B0A0F",
+          "#25232D",
+          "#433F4F",
+          "#625E73",
+          "#837F95",
+          "#A6A2B4",
+          "#CAC7D4",
+          "#EFEDF5"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Mực nhạt",
+        "canonical": "#5C5670",
+        "tonalRamp": [
+          "#0B0A10",
+          "#26232E",
+          "#433F50",
+          "#635D75",
+          "#847E97",
+          "#A6A2B6",
+          "#CAC7D5",
+          "#EFEDF6"
+        ]
+      },
+      "violet-ink": {
+        "role": "primary",
+        "displayName": "Mực tím",
+        "canonical": "#4B2E83",
+        "tonalRamp": [
+          "#0C0819",
+          "#281D41",
+          "#46366E",
+          "#67509E",
+          "#8872C3",
+          "#A999DA",
+          "#CCC1F0",
+          "#F0EAFF"
+        ]
+      },
+      "on-violet-ink": {
+        "role": "primary",
+        "displayName": "Chữ trên mực tím",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "lavender-wash": {
+        "role": "primary",
+        "displayName": "Lavender nhạt",
+        "canonical": "#E3DAFB",
+        "tonalRamp": [
+          "#0C0A10",
+          "#26232E",
+          "#443F51",
+          "#645C76",
+          "#857D98",
+          "#A7A1B7",
+          "#CAC6D6",
+          "#EFEDF6"
+        ]
+      },
+      "on-lavender-wash": {
+        "role": "primary",
+        "displayName": "Chữ trên lavender",
+        "canonical": "#2A1655",
+        "tonalRamp": [
+          "#0C0916",
+          "#26203C",
+          "#433A66",
+          "#635693",
+          "#8477B7",
+          "#A69DD0",
+          "#C9C4E9",
+          "#EEEBFF"
+        ]
+      },
+      "pencil-outline": {
+        "role": "neutral",
+        "displayName": "Viền bút chì",
+        "canonical": "#7A7392",
+        "tonalRamp": [
+          "#0B0A10",
+          "#26232F",
+          "#433F52",
+          "#635D77",
+          "#847E9A",
+          "#A6A1B8",
+          "#CAC6D7",
+          "#EFEDF7"
+        ]
+      },
+      "lavender-rule": {
+        "role": "neutral",
+        "displayName": "Dòng kẻ lavender",
+        "canonical": "#B9B3E6",
+        "tonalRamp": [
+          "#0B0A13",
+          "#252235",
+          "#413D5B",
+          "#605B84",
+          "#817CA7",
+          "#A4A0C3",
+          "#C8C6DF",
+          "#EEEDFB"
+        ]
+      },
+      "error-red": {
+        "role": "tertiary",
+        "displayName": "Đỏ lỗi",
+        "canonical": "#B3261E",
+        "tonalRamp": [
+          "#1B0302",
+          "#460E0A",
+          "#761E17",
+          "#A92F26",
+          "#D15547",
+          "#E88678",
+          "#FCB4AA",
+          "#FFE3DC"
+        ]
+      },
+      "warning-amber": {
+        "role": "tertiary",
+        "displayName": "Hổ phách",
+        "canonical": "#7A5200",
+        "tonalRamp": [
+          "#120901",
+          "#322206",
+          "#563C11",
+          "#7E5A1E",
+          "#A17B41",
+          "#BEA075",
+          "#DBC6A7",
+          "#F9EDDB"
+        ]
+      },
+      "margin-red": {
+        "role": "tertiary",
+        "displayName": "Đỏ lề",
+        "canonical": "#D9473F",
+        "tonalRamp": [
+          "#1C0202",
+          "#470C0A",
+          "#771C18",
+          "#AB2C27",
+          "#D35249",
+          "#EA8479",
+          "#FEB3AA",
+          "#FFE3DC"
+        ]
+      },
+      "nutrient-calories": {
+        "role": "secondary",
+        "displayName": "Màu calo",
+        "canonical": "#4B2E83",
+        "tonalRamp": [
+          "#0C0819",
+          "#281D41",
+          "#46366E",
+          "#67509E",
+          "#8872C3",
+          "#A999DA",
+          "#CCC1F0",
+          "#F0EAFF"
+        ]
+      },
+      "nutrient-protein": {
+        "role": "secondary",
+        "displayName": "Màu đạm",
+        "canonical": "#2E6E50",
+        "tonalRamp": [
+          "#040E08",
+          "#122B1F",
+          "#244B38",
+          "#376E53",
+          "#599074",
+          "#86B199",
+          "#B4D2C1",
+          "#E2F3E9"
+        ]
+      },
+      "nutrient-sodium": {
+        "role": "secondary",
+        "displayName": "Màu natri",
+        "canonical": "#8A5A00",
+        "tonalRamp": [
+          "#130901",
+          "#342103",
+          "#593B0A",
+          "#825713",
+          "#A5793A",
+          "#C29E71",
+          "#DEC5A5",
+          "#FBECD9"
+        ]
+      },
+      "nutrient-sugar": {
+        "role": "secondary",
+        "displayName": "Màu đường",
+        "canonical": "#8E2F6E",
+        "tonalRamp": [
+          "#16040F",
+          "#3B152E",
+          "#65284F",
+          "#923E74",
+          "#B75F96",
+          "#D28BB5",
+          "#EBB7D5",
+          "#FFE4F5"
+        ]
+      },
+      "lamp-paper": {
+        "role": "neutral",
+        "displayName": "Giấy (dưới đèn bàn)",
+        "canonical": "#17141F",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#25242A",
+          "#434049",
+          "#625F6B",
+          "#83808D",
+          "#A6A3AE",
+          "#CAC8CF",
+          "#EFEEF2"
+        ]
+      },
+      "lamp-paper-tint": {
+        "role": "neutral",
+        "displayName": "Giấy ngả tím (dưới đèn bàn)",
+        "canonical": "#262132",
+        "tonalRamp": [
+          "#0B0A0E",
+          "#26242C",
+          "#43404C",
+          "#635E70",
+          "#847F92",
+          "#A6A2B1",
+          "#CAC7D2",
+          "#EFEDF4"
+        ]
+      },
+      "lamp-ink": {
+        "role": "neutral",
+        "displayName": "Mực (dưới đèn bàn)",
+        "canonical": "#ECE8F6",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#262429",
+          "#434148",
+          "#625F6A",
+          "#83808B",
+          "#A6A3AC",
+          "#CAC8CE",
+          "#EFEEF1"
+        ]
+      },
+      "lamp-ink-muted": {
+        "role": "neutral",
+        "displayName": "Mực nhạt (dưới đèn bàn)",
+        "canonical": "#BDB6CF",
+        "tonalRamp": [
+          "#0C0A0F",
+          "#26232C",
+          "#433F4E",
+          "#635E71",
+          "#847E93",
+          "#A7A2B3",
+          "#CAC7D3",
+          "#EFEDF4"
+        ]
+      },
+      "lamp-violet-ink": {
+        "role": "primary",
+        "displayName": "Mực tím (dưới đèn bàn)",
+        "canonical": "#CDBDFF",
+        "tonalRamp": [
+          "#0C0915",
+          "#272038",
+          "#453B60",
+          "#65578B",
+          "#8678AF",
+          "#A89DC9",
+          "#CBC4E4",
+          "#EFEBFE"
+        ]
+      },
+      "lamp-on-violet-ink": {
+        "role": "primary",
+        "displayName": "Chữ trên mực tím (dưới đèn bàn)",
+        "canonical": "#2A1655",
+        "tonalRamp": [
+          "#0C0916",
+          "#26203C",
+          "#433A66",
+          "#635693",
+          "#8477B7",
+          "#A69DD0",
+          "#C9C4E9",
+          "#EEEBFF"
+        ]
+      },
+      "lamp-lavender-wash": {
+        "role": "primary",
+        "displayName": "Lavender nhạt (dưới đèn bàn)",
+        "canonical": "#3B2A66",
+        "tonalRamp": [
+          "#0C0916",
+          "#26203A",
+          "#443A64",
+          "#645790",
+          "#8578B4",
+          "#A69DCD",
+          "#CAC4E7",
+          "#EFEBFF"
+        ]
+      },
+      "lamp-on-lavender-wash": {
+        "role": "primary",
+        "displayName": "Chữ trên lavender (dưới đèn bàn)",
+        "canonical": "#E8DEFF",
+        "tonalRamp": [
+          "#0C0A10",
+          "#26232E",
+          "#443E51",
+          "#645C76",
+          "#867D98",
+          "#A7A1B6",
+          "#CBC6D6",
+          "#EFEDF6"
+        ]
+      },
+      "lamp-pencil-outline": {
+        "role": "neutral",
+        "displayName": "Viền bút chì (dưới đèn bàn)",
+        "canonical": "#8E87A6",
+        "tonalRamp": [
+          "#0B0A10",
+          "#26232F",
+          "#433F51",
+          "#635D77",
+          "#847E99",
+          "#A6A1B7",
+          "#CAC7D7",
+          "#EFEDF6"
+        ]
+      },
+      "lamp-rule": {
+        "role": "neutral",
+        "displayName": "rule (dưới đèn bàn)",
+        "canonical": "#3A3452",
+        "tonalRamp": [
+          "#0B0A11",
+          "#252330",
+          "#423F54",
+          "#625D7A",
+          "#837E9C",
+          "#A5A1BA",
+          "#C9C6D9",
+          "#EEEDF7"
+        ]
+      },
+      "lamp-error-red": {
+        "role": "tertiary",
+        "displayName": "Đỏ lỗi (dưới đèn bàn)",
+        "canonical": "#FFB4AB",
+        "tonalRamp": [
+          "#140706",
+          "#371C1A",
+          "#5F3530",
+          "#894F48",
+          "#AD7069",
+          "#C99791",
+          "#E4BFBA",
+          "#FFE9E6"
+        ]
+      },
+      "lamp-warning-amber": {
+        "role": "tertiary",
+        "displayName": "Hổ phách (dưới đèn bàn)",
+        "canonical": "#F2C462",
+        "tonalRamp": [
+          "#120A00",
+          "#332200",
+          "#583D00",
+          "#7F5A00",
+          "#A27C1F",
+          "#BFA163",
+          "#DCC79C",
+          "#FAEDD5"
+        ]
+      },
+      "lamp-margin-red": {
+        "role": "tertiary",
+        "displayName": "Đỏ lề (dưới đèn bàn)",
+        "canonical": "#FF8A80",
+        "tonalRamp": [
+          "#190404",
+          "#411512",
+          "#6D2925",
+          "#9D3E38",
+          "#C36058",
+          "#DC8C84",
+          "#F3B9B2",
+          "#FFE5E1"
+        ]
+      },
+      "lamp-nutrient-calories": {
+        "role": "secondary",
+        "displayName": "Màu calo (dưới đèn bàn)",
+        "canonical": "#CDBDFF",
+        "tonalRamp": [
+          "#0C0915",
+          "#272038",
+          "#453B60",
+          "#65578B",
+          "#8678AF",
+          "#A89DC9",
+          "#CBC4E4",
+          "#EFEBFE"
+        ]
+      },
+      "lamp-nutrient-protein": {
+        "role": "secondary",
+        "displayName": "Màu đạm (dưới đèn bàn)",
+        "canonical": "#86D4AE",
+        "tonalRamp": [
+          "#020E08",
+          "#0C2C1E",
+          "#1B4D37",
+          "#2B7052",
+          "#4F9273",
+          "#80B299",
+          "#B0D3C0",
+          "#E0F4E9"
+        ]
+      },
+      "lamp-nutrient-sodium": {
+        "role": "secondary",
+        "displayName": "Màu natri (dưới đèn bàn)",
+        "canonical": "#E9C16B",
+        "tonalRamp": [
+          "#110A00",
+          "#312200",
+          "#553E00",
+          "#7C5B00",
+          "#9F7D30",
+          "#BCA26B",
+          "#DAC7A1",
+          "#F8EDD7"
+        ]
+      },
+      "lamp-nutrient-sugar": {
+        "role": "secondary",
+        "displayName": "Màu đường (dưới đèn bàn)",
+        "canonical": "#F2A7D6",
+        "tonalRamp": [
+          "#13060F",
+          "#361A2C",
+          "#5C314D",
+          "#854A71",
+          "#A96B93",
+          "#C693B2",
+          "#E1BDD3",
+          "#FDE7F4"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Chỉ số calo đã nạp, một lần mỗi trang; chữ số đều hàng."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Tiêu đề màn hình form và sheet."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Mục tiêu calo và giá trị chất."
+      },
+      "title-medium": {
+        "displayName": "Title Medium",
+        "purpose": "Nhãn Calo, tiêu đề mục, ngày trên thanh ngày."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Dòng món, nhãn chất, dòng Còn / Vượt, chữ trong ô nhập."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Dòng phụ của món, lỗi, Vượt ngưỡng của chất, cảnh báo."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chữ nút, nhãn ô nhập, chip."
+      },
+      "label-small": {
+        "displayName": "Label Small",
+        "purpose": "Nhãn phụ."
+      }
+    },
+    "shadows": [
+      {
+        "name": "fab-elevation-3",
+        "value": "Android elevation 3 (≈ 0 1px 3px rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15))",
+        "purpose": "Chỉ FAB; mọi khối khác trên trang phẳng."
+      }
+    ],
+    "motion": [
+      {
+        "name": "sheet-slide",
+        "value": "Modal animationType slide (mặc định RN)",
+        "purpose": "Sheet thêm/sửa món trượt lên."
+      },
+      {
+        "name": "pressed-opacity",
+        "value": "0.85",
+        "purpose": "Phản hồi nhấn cho nút và FAB."
+      },
+      {
+        "name": "disabled-opacity",
+        "value": "0.38",
+        "purpose": "Nút và mũi tên ngày bị khoá."
+      },
+      {
+        "name": "scrim-opacity",
+        "value": "0.32",
+        "purpose": "Nền mờ màu mực dưới sheet."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Nút filled",
+      "kind": "button",
+      "refersTo": "button-filled",
+      "description": "Hành động chính của một nhóm, ví dụ \"Lưu\".",
+      "html": "<button class=\"ds-btn-filled\">Lưu</button>",
+      "css": ".ds-btn-filled { font-family: Roboto, sans-serif; background: #4B2E83; color: #FFFFFF; border: none; border-radius: 20px; min-height: 48px; padding: 0 24px; font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; } .ds-btn-filled:active { opacity: 0.85; } .ds-btn-filled:focus-visible { outline: 2px solid #4B2E83; outline-offset: 2px; } .ds-btn-filled:disabled { opacity: 0.38; }"
+    },
+    {
+      "name": "Nút text",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Hành động phụ: Thử lại, Thêm món, Xoá.",
+      "html": "<button class=\"ds-btn-text\">Thử lại</button>",
+      "css": ".ds-btn-text { font-family: Roboto, sans-serif; background: transparent; color: #4B2E83; border: none; border-radius: 20px; min-height: 48px; padding: 0 12px; font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; } .ds-btn-text:hover { background: #EEEBFA; } .ds-btn-text:active { opacity: 0.85; } .ds-btn-text:focus-visible { outline: 2px solid #4B2E83; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ô nhập outlined",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Nhãn trên ô, viền bút chì, lỗi đỏ dưới ô.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Calo (kcal)</span><input class=\"ds-field-input\" value=\"5001\"><span class=\"ds-field-error\">Calo từ 0 đến 5.000 kcal</span></label>",
+      "css": ".ds-field { font-family: Roboto, sans-serif; display: flex; flex-direction: column; gap: 4px; width: 240px; } .ds-field-label { color: #5C5670; font-size: 14px; line-height: 20px; font-weight: 500; } .ds-field-input { font-family: Roboto, sans-serif; min-height: 56px; box-sizing: border-box; border: 1px solid #B3261E; border-radius: 4px; background: #FBFBFE; color: #1F1A2E; font-size: 16px; line-height: 24px; padding: 8px 16px; font-variant-numeric: tabular-nums; } .ds-field-input:focus-visible { outline: 2px solid #4B2E83; outline-offset: -1px; } .ds-field-error { color: #B3261E; font-size: 14px; line-height: 20px; }"
+    },
+    {
+      "name": "Chip outlined",
+      "kind": "chip",
+      "refersTo": "chip-outlined",
+      "description": "Chip \"Hôm nay\" trên thanh ngày, chip ngày trong sheet.",
+      "html": "<button class=\"ds-chip\">Hôm nay</button>",
+      "css": ".ds-chip { font-family: Roboto, sans-serif; background: transparent; color: #5C5670; border: 1px solid #7A7392; border-radius: 8px; min-height: 32px; padding: 0 16px; font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; } .ds-chip:hover { background: #EEEBFA; } .ds-chip:focus-visible { outline: 2px solid #4B2E83; outline-offset: 2px; }"
+    },
+    {
+      "name": "Thanh điều hướng dưới",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Hôm nay · Biểu đồ · Cài đặt, chỉ báo lavender.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-on\"><span class=\"ds-nav-ind\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M21 5c-1.1-.35-2.3-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z\"/></svg></span>Hôm nay</a><a class=\"ds-nav-item\"><span class=\"ds-nav-ind\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M4 9h4v11H4zm12 4h4v7h-4zm-6-9h4v16h-4z\"/></svg></span>Biểu đồ</a><a class=\"ds-nav-item\"><span class=\"ds-nav-ind\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-dasharray=\"3 2.3\"/></svg></span>Cài đặt</a></nav>",
+      "css": ".ds-nav { font-family: Roboto, sans-serif; display: flex; background: #EEEBFA; padding: 12px 0 16px; width: 360px; } .ds-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #5C5670; font-size: 12px; line-height: 16px; font-weight: 500; cursor: pointer; } .ds-nav-ind { width: 64px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; } .ds-nav-item:hover .ds-nav-ind { background: #E3DAFB80; } .ds-nav-on { color: #1F1A2E; } .ds-nav-on .ds-nav-ind { background: #E3DAFB; color: #2A1655; }"
+    },
+    {
+      "name": "FAB",
+      "kind": "button",
+      "refersTo": "fab",
+      "description": "Thêm món; góc dưới phải, chỉ hiện khi dữ liệu đã tải.",
+      "html": "<button class=\"ds-fab\" aria-label=\"Thêm món\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z\"/></svg></button>",
+      "css": ".ds-fab { width: 56px; height: 56px; border: none; border-radius: 16px; background: #E3DAFB; color: #2A1655; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15); cursor: pointer; } .ds-fab:active { opacity: 0.85; } .ds-fab:focus-visible { outline: 2px solid #4B2E83; outline-offset: 2px; }"
+    },
+    {
+      "name": "Khối Calo với vạch dung lượng",
+      "kind": "custom",
+      "refersTo": "capacity-bar-calories",
+      "description": "Số Display màu mực tím, mục tiêu Title, vạch 12 dp, dòng Còn trung tính.",
+      "html": "<div class=\"ds-page\"><div class=\"ds-rule\"></div><div class=\"ds-row\"><div class=\"ds-gutter\"></div><div class=\"ds-content\"><div class=\"ds-lbl\">Calo</div><div class=\"ds-val\"><span class=\"ds-big\">600</span><span class=\"ds-tgt\"> / 2.056 kcal</span></div><div class=\"ds-bar\"><div style=\"width:29%\"></div></div><div class=\"ds-rem\">Còn 1.456 kcal</div></div></div></div>",
+      "css": ".ds-page { font-family: Roboto, sans-serif; position: relative; background: #FBFBFE; width: 360px; padding: 16px 0; } .ds-rule { position: absolute; top: 0; bottom: 0; left: 32px; width: 2px; background: #D9473F; opacity: 0.45; } .ds-row { display: flex; } .ds-gutter { width: 40px; flex: none; } .ds-content { flex: 1; padding-right: 16px; } .ds-lbl { color: #5C5670; font-size: 16px; line-height: 24px; font-weight: 500; } .ds-val { display: flex; align-items: baseline; font-variant-numeric: tabular-nums; } .ds-big { color: #4B2E83; font-size: 36px; line-height: 44px; font-weight: 700; } .ds-tgt { color: #5C5670; font-size: 22px; line-height: 28px; font-weight: 500; } .ds-bar { margin-top: 8px; height: 12px; border-radius: 6px; background: #EEEBFA; overflow: hidden; } .ds-bar > div { height: 12px; border-radius: 6px; background: #4B2E83; } .ds-rem { margin-top: 8px; color: #5C5670; font-size: 16px; line-height: 24px; }"
+    },
+    {
+      "name": "Hàng chất vượt ngưỡng (Margin Row)",
+      "kind": "custom",
+      "refersTo": "capacity-bar-nutrient",
+      "description": "Ba kênh: đỏ, dấu ! trong cột lề, chữ Vượt ngưỡng.",
+      "html": "<div class=\"ds-page\"><div class=\"ds-rule\"></div><div class=\"ds-row\"><div class=\"ds-gutter\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" role=\"img\" aria-label=\"Vượt ngưỡng\"><path fill=\"#B3261E\" d=\"M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z\"/></svg></div><div class=\"ds-content\"><div class=\"ds-line\"><span class=\"ds-lbl\">Natri</span><span class=\"ds-v\">5.400 / 1.500 mg</span></div><div class=\"ds-bar\"><div></div></div><div class=\"ds-over\">Vượt ngưỡng 3.400 mg</div></div></div><div class=\"ds-row\"><div class=\"ds-gutter\"></div><div class=\"ds-content\"><div class=\"ds-line\"><span class=\"ds-lbl\">Đạm</span><span class=\"ds-v ds-ok\">75 / 112 g</span></div><div class=\"ds-bar\"><div class=\"ds-okbar\"></div></div></div></div></div>",
+      "css": ".ds-page { font-family: Roboto, sans-serif; position: relative; background: #FBFBFE; width: 360px; padding: 8px 0; } .ds-rule { position: absolute; top: 0; bottom: 0; left: 32px; width: 2px; background: #D9473F; opacity: 0.45; } .ds-row { display: flex; margin-top: 16px; } .ds-gutter { width: 40px; flex: none; display: flex; justify-content: center; padding-top: 4px; } .ds-content { flex: 1; padding-right: 16px; } .ds-line { display: flex; justify-content: space-between; align-items: baseline; } .ds-lbl { color: #5C5670; font-size: 16px; line-height: 24px; } .ds-v { color: #B3261E; font-size: 22px; line-height: 28px; font-weight: 500; font-variant-numeric: tabular-nums; } .ds-ok { color: #2E6E50; } .ds-bar { margin-top: 8px; height: 4px; border-radius: 2px; background: #EEEBFA; overflow: hidden; } .ds-bar > div { height: 4px; width: 100%; background: #B3261E; } .ds-bar > .ds-okbar { width: 67%; background: #2E6E50; } .ds-over { color: #B3261E; font-size: 14px; line-height: 20px; }"
+    },
+    {
+      "name": "Dòng món",
+      "kind": "custom",
+      "refersTo": "meal-row",
+      "description": "Tên và kcal cỡ Body, dòng phụ chất, đường kẻ vở hairline.",
+      "html": "<div class=\"ds-meal\"><div class=\"ds-meal-l\"><span>Món 1</span><span>300 kcal</span></div><div class=\"ds-meal-s\">Đạm 25 g · Natri 1.800 mg · Đường 6 g</div></div>",
+      "css": ".ds-meal { font-family: Roboto, sans-serif; width: 320px; min-height: 48px; padding: 8px 16px 8px 40px; background: #FBFBFE; border-bottom: 1px solid #B9B3E6; cursor: pointer; } .ds-meal:hover, .ds-meal:active { background: #EEEBFA; } .ds-meal-l { display: flex; justify-content: space-between; color: #1F1A2E; font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; } .ds-meal-s { color: #5C5670; font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Vở ô ly",
+    "overview": "**Creative North Star: \"Vở ô ly\"**\n\nMỗi ngày là một trang vở học trò: giấy trắng hơi ngả tím, mực tím, dòng kẻ lavender, một đường lề đỏ mảnh chạy dọc bên trái. Người dùng liếc một lần là biết còn bao nhiêu calo và chất nào đã vượt ngưỡng; mọi thứ khác lùi lại. Bố cục đi theo nhịp viết tay trên vở: nội dung căn sau cột lề 40 dp, khối lớn cách nhau đúng một \"ô to\" (32 dp), dòng món ăn ngăn bằng đường kẻ mảnh như dòng kẻ vở.\n\nCấu trúc là Material 3 thuần (thanh điều hướng dưới qua native tabs, FAB, bottom sheet, dialog chọn ngày M3, ô nhập outlined), nhưng Dynamic Color tắt: màu là của trang vở, không lấy từ hình nền máy, để màu từng chất và dấu lề giữ đúng một nghĩa ở mọi màn hình. Mật độ vừa phải, chữ to rõ, số luôn dùng chữ số đều hàng (tabular). Bản tối không phải bản đảo màu mà là \"trang vở dưới đèn bàn\": nền mực sẫm, mực tím sáng, được thiết kế riêng.\n\nTrạng thái được báo bằng nhiều kênh cùng lúc. Vượt ngưỡng trên không chỉ đổi màu: số và vạch chuyển đỏ, dấu \"!\" hiện trong cột lề, và có dòng chữ \"Vượt ngưỡng X\". Còn / vượt so với mục tiêu là thông tin trung tính, không bị tô màu cảnh báo.",
+    "keyCharacteristics": [
+      "Trang giấy sáng, mực tím, đường lề đỏ mảnh làm khung cho mọi trang có nội dung theo ngày.",
+      "Cột lề 40 dp là nơi duy nhất đặt dấu trạng thái.",
+      "Vạch dung lượng dài cố định (không dùng vòng tròn), mỗi chất một màu cố định.",
+      "Thang cỡ chữ cố định: calo cỡ Display, chất cỡ Title, dòng món cỡ Body.",
+      "Material 3 về cấu trúc, màu riêng của thế giới, Dynamic Color tắt."
+    ],
+    "rules": [
+      {
+        "name": "The Fixed Meaning Rule",
+        "body": "Mỗi chất có đúng một màu, ở mọi màn hình, ở cả hai bản sáng và tối. Không có Dynamic Color, không đổi màu chất theo ngữ cảnh. Màu chỉ bị thay bằng `error-red` khi chất đó vượt ngưỡng trên.",
+        "section": "colors"
+      },
+      {
+        "name": "The Neutral Remainder Rule",
+        "body": "\"Còn X kcal\" và \"Vượt X kcal\" (so với mục tiêu) luôn màu `ink-muted`. Đỏ chỉ dành cho tổng vượt **ngưỡng trên**.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never Colour Alone Rule",
+        "body": "Vượt ngưỡng luôn là ba kênh cùng lúc: số và vạch đỏ, dấu \"!\" trong cột lề (có nhãn đọc \"Vượt ngưỡng\"), và chữ \"Vượt ngưỡng X\". Cảnh báo hổ phách luôn có icon. Lỗi ô nhập luôn có chữ dưới ô.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Floor Rule",
+        "body": "Mọi vai trò chữ (`ink`, `ink-muted`, `violet-ink`, `error-red`, `warning-amber` và bản tối tương ứng) đạt ít nhất 4.5:1 trên `paper` và `paper-tint`; có test tự động kiểm tra.",
+        "section": "colors"
+      },
+      {
+        "name": "The Size Ladder Rule",
+        "body": "Calo cỡ Display, chất cỡ Title, dòng món cỡ Body. Không đổi bậc giữa các màn hình; thứ bậc thông tin nằm ở cỡ chữ, không ở màu.",
+        "section": "typography"
+      },
+      {
+        "name": "The Vietnamese Numbers Rule",
+        "body": "Số có dấu chấm phân nghìn (\"2.350\") và dấu phẩy thập phân (\"25,3\"); chất đã nạp tối đa một chữ số thập phân, mục tiêu là số nguyên. Ngày `dd/MM/yyyy`, giờ 24h. Mọi số đứng thành cột dùng chữ số đều hàng.",
+        "section": "typography"
+      },
+      {
+        "name": "The Margin Column Rule",
+        "body": "Dấu trạng thái chỉ được đặt trong cột lề 40 dp, không bao giờ trong phần nội dung. Đường lề đỏ là trang trí; nghĩa chỉ đến từ dấu trong cột lề.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "Thẻ, hàng và khối trên trang không có bóng và không có nền thẻ riêng. Chỉ FAB và sheet được nổi.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do đặt nội dung theo ngày trong `NotebookPage` và căn từng dòng bằng `MarginRow` (cột lề 40 dp).",
+      "Do dùng màu chất cố định từ bảng `nutrient-*` cho cả số và vạch của chất đó, trên mọi màn hình.",
+      "Do báo vượt ngưỡng trên bằng ba kênh: đỏ, dấu \"!\" trong cột lề, chữ \"Vượt ngưỡng X\".",
+      "Do giữ \"Còn / Vượt X kcal\" so với mục tiêu ở màu `ink-muted`.",
+      "Do viết số kiểu Việt Nam (\"2.350\", \"25,3\"), ngày `dd/MM/yyyy`, giờ 24h, chữ số đều hàng.",
+      "Do cách các khối lớn 32 dp và giữ vùng chạm ≥ 48 dp.",
+      "Do thiết kế bản tối riêng (\"dưới đèn bàn\") với bộ `lamp-*`, không đảo màu tự động.",
+      "Do dùng dialog xác nhận cho thao tác xoá và bỏ dữ liệu chưa lưu."
+    ],
+    "donts": [
+      "Don't bật Dynamic Color hay lấy màu từ hình nền máy.",
+      "Don't dùng vòng tròn tiến độ cho calo hay chất; dùng vạch dài cố định.",
+      "Don't đặt dấu trạng thái trong phần nội dung, hay dùng đỏ cho việc chỉ vượt mục tiêu.",
+      "Don't để màu là kênh duy nhất của một trạng thái.",
+      "Don't thêm bóng hay nền thẻ cho các khối trên trang; chỉ FAB và sheet được nổi.",
+      "Don't thêm nút Hoàn tác sau khi lưu hoặc xoá.",
+      "Don't đổi bậc cỡ chữ của calo, chất, dòng món giữa các màn hình."
+    ]
+  }
+}
