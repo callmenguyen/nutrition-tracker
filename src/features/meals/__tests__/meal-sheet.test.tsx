@@ -15,6 +15,10 @@ import type {
   SaveResult,
 } from "@/features/meals/meals";
 
+// Each test types into several fields; the first one also pays for loading zod, react-hook-form
+// and the sheet. CI with coverage took > 5 s for it, so give the file a larger budget.
+jest.setTimeout(20_000);
+
 jest.mock("expo-symbols", () => ({ SymbolView: () => null }));
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
