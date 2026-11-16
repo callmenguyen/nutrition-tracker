@@ -322,7 +322,7 @@ describe("tables", () => {
   });
 });
 
-describe("meal_entries (read-only until #17)", () => {
+describe("meal_entries reads", () => {
   const entry = (name: string, eaten_on: string) => ({
     eaten_on,
     name,
@@ -539,6 +539,14 @@ describe("log_meal, suggest_foods, delete (#17)", () => {
       expect(error?.code).toBe("23514");
     }
     expect((await mealsToday(client)).data).toEqual([]);
+  });
+
+  it("requires a uuid p_id, like the SQL signature", async () => {
+    const { client } = await signedIn("a@example.com");
+    for (const p_id of [undefined, "", "not-a-uuid"]) {
+      const { error } = await client.rpc("log_meal", { ...args(), p_id });
+      expect(error?.code).toBe("23514");
+    }
   });
 
   it("refuses an id that belongs to another user", async () => {

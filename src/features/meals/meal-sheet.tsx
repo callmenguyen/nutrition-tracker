@@ -135,6 +135,7 @@ function SheetBody({
   const [id] = useState(() => (editing ? target.meal.id : uuidV4()));
   const schema = useMemo(() => mealFormSchema(today), [today]);
   const [formError, setFormError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [picking, setPicking] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const pickerEnd = useMemo(() => localDateOf(today), [today]);
@@ -178,6 +179,8 @@ function SheetBody({
       if (!editing) nameInput.current?.focus();
     },
     requestClose: () => {
+      // A save or delete in flight finishes first: the sheet stays open until it does (brief).
+      if (isSubmitting || deleting) return;
       if (showSuggestions) {
         setSuggestOpen(false);
       } else if (isDirty) {
@@ -222,7 +225,9 @@ function SheetBody({
         style: "destructive",
         onPress: async () => {
           setFormError(null);
+          setDeleting(true);
           const result = await onDelete(id);
+          setDeleting(false);
           if (result.ok) onClose();
           else setFormError(result.message);
         },
@@ -386,6 +391,7 @@ function SheetBody({
             variant="text"
             onPress={confirmDelete}
             disabled={isSubmitting}
+            loading={deleting}
             testID="meal-delete"
           />
         ) : (
@@ -395,6 +401,8 @@ function SheetBody({
           label="Lưu"
           onPress={save}
           loading={isSubmitting}
+          // A save racing a delete would re-insert the deleted meal under the same id.
+          disabled={deleting}
           testID="meal-save"
         />
       </View>

@@ -272,6 +272,31 @@ describe("MealSheet: edit and delete", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("locks Lưu and ignores Back while a delete is in flight", async () => {
+    let finish: (r: SaveResult) => void = () => {};
+    onDelete.mockImplementation(
+      () => new Promise<SaveResult>((resolve) => (finish = resolve)),
+    );
+    await open({ mode: "edit", meal, day: TODAY });
+    await fireEvent.press(screen.getByTestId("meal-delete"));
+    const buttons = alert.mock.calls.at(-1)![2] as AlertButton[];
+    let pending: unknown;
+    await act(async () => {
+      pending = buttons.find((b) => b.text === "Xoá")!.onPress!();
+    });
+    expect(
+      screen.getByTestId("meal-save").props.accessibilityState.disabled,
+    ).toBe(true);
+    await fireEvent.press(screen.getByTestId("meal-sheet-scrim"));
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => {
+      finish({ ok: true });
+      await pending;
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it("has no Xoá button when adding", async () => {
     await open({ mode: "add", day: TODAY });
     expect(screen.queryByTestId("meal-delete")).toBeNull();

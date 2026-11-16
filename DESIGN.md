@@ -275,7 +275,7 @@ Gọn, một hành động chính mỗi nhóm.
 Vạch dài cố định, không phải vòng tròn. Rãnh `paper-tint`, phần đã nạp màu của chất (đầy tối đa khi chạm mục tiêu), bo tròn hai đầu. Calo cao 12 dp, chất cao 4 dp. Khi vượt ngưỡng trên, phần đã nạp chuyển `error-red`.
 
 ### Margin Row (signature)
-Dòng nội dung với cột lề 40 dp. Dấu "alert" là icon `error` 20 dp màu `error-red`, bắt buộc có nhãn đọc cho TalkBack. Dấu căn giữa trong 32 dp bên trái đường lề (không chạm đường lề) và căn giữa theo dòng đầu của hàng (`firstLineHeight`: 24 cho Body / Title Medium, 28 cho hàng chất cỡ Title). Dùng cho khối Calo, hàng chất vượt ngưỡng, và thông báo lỗi tải.
+Dòng nội dung với cột lề 40 dp. Dấu "alert" là vòng tròn 24 dp viền 2 dp `error-red` với chữ "!" đậm ở giữa (vẽ bằng view, không dùng icon font vì glyph Android bị cắt), bắt buộc có nhãn đọc cho TalkBack. Dấu căn giữa trong 32 dp bên trái đường lề (không chạm đường lề) và căn giữa theo dòng đầu của hàng (`firstLineHeight`: 24 cho Body / Title Medium, 28 cho hàng chất cỡ Title). Dùng cho khối Calo, hàng chất vượt ngưỡng, và thông báo lỗi tải.
 
 ### Meal Row
 - Cao tối thiểu 48 dp, đệm dọc 8 dp, đường kẻ dưới hairline `lavender-rule` chạy hết bề ngang như dòng kẻ vở. Tên món cỡ Body (tối đa 2 dòng) và kcal căn phải; dòng phụ "Đạm X g · Natri Y mg · Đường Z g" cỡ Body Small `ink-muted`. Nhấn: nền `paper-tint`; chạm mở sheet ở chế độ sửa.

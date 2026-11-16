@@ -569,7 +569,6 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   // flexGrow: the page (and its red margin rule) fills the screen even on an empty day.
-  // Bottom padding keeps the last meal clear of the FAB.
   scroll: { flexGrow: 1, paddingTop: space.m },
   // Room for the FAB inside the page, so the margin rule still runs to the bottom.
   page: { paddingBottom: 96 },

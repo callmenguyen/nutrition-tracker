@@ -568,6 +568,10 @@ export function createMockBackend(): { server: Server } {
         (p.p_sugar_g as number) > 500 ||
         mealName.length < 1 ||
         mealName.length > 100 ||
+        // p_id is a uuid (not null) in the SQL signature; the app always sends one.
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          str(p.p_id),
+        ) ||
         !/^\d{4}-\d{2}-\d{2}$/.test(eatenOn)
       ) {
         return send(res, 400, {
@@ -605,7 +609,7 @@ export function createMockBackend(): { server: Server } {
         Object.assign(existing, values); // created_at unchanged: editing keeps the order (MEAL-11)
       }
       const row = existing ?? {
-        id: str(p.p_id) || randomUUID(),
+        id: str(p.p_id),
         user_id: userId,
         created_at: tick(),
         ...values,
