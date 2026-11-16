@@ -132,6 +132,8 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         filled && { backgroundColor: colors.primary },
+        // M3: text buttons use 12 dp side padding (filled: 24 dp).
+        !filled && styles.textButton,
         inactive && filled && { opacity: 0.38 },
         pressed && !inactive && { opacity: 0.85 },
       ]}
@@ -193,6 +195,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: space.s,
   },
+  textButton: { paddingHorizontal: 12 },
   button: {
     minHeight: layout.touchTarget,
     borderRadius: 20,

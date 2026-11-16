@@ -181,7 +181,10 @@ def test_suggestion_fills_and_saved_food_follows_latest(driver):
         "6",
     ]
     type_into(driver, "meal-calories", "500")
-    save(driver)
+    # ≤ 3 taps (brief): "Lưu" sits above the keyboard, so it is tapped without closing it first.
+    assert driver.is_keyboard_shown()
+    driver.find_element(AppiumBy.ID, "meal-save").click()
+    wait_until(driver, absent("meal-sheet"), timeout=10)
     wait_until(driver, lambda d: d.find_element(AppiumBy.ID, "today-calories").text == "500", timeout=10)
 
     # MEAL-04 and MEAL-05: "nạm" matches (contains), and the suggestion now carries 500.

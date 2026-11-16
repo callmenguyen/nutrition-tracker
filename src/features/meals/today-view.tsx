@@ -1,7 +1,13 @@
 import { DatePickerDialog, Host } from "@expo/ui/jetpack-compose";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/form";
@@ -62,7 +68,7 @@ export function TodayView({
     <ThemedView style={styles.flex} testID="screen-today">
       <SafeAreaView edges={["top"]} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <NotebookPage>
+          <NotebookPage style={styles.page}>
             <DayBar day={day} today={today} onChangeDay={onChangeDay} />
             {state.kind === "loading" ? (
               <Skeleton />
@@ -128,6 +134,7 @@ function DayBar({
           label="Ngày trước"
           onPress={() => onChangeDay(addDays(day, -1))}
           testID="today-prev"
+          style={styles.firstIcon}
         />
         <Pressable
           onPress={() => setPicking(true)}
@@ -192,7 +199,9 @@ function IconButton({
   onPress,
   disabled,
   testID,
+  style,
 }: {
+  style?: ViewStyle;
   icon: "chevron_left" | "chevron_right";
   label: string;
   onPress: () => void;
@@ -207,7 +216,7 @@ function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
-      style={[styles.iconButton, disabled && styles.disabled]}
+      style={[styles.iconButton, disabled && styles.disabled, style]}
       testID={testID}
     >
       <SymbolView
@@ -388,6 +397,7 @@ function NutrientRow({
     <MarginRow
       {...rowProps}
       style={styles.nutrient}
+      firstLineHeight={28}
       accessible
       accessibilityLabel={`${label}, ${value}${over ? `, ${over}` : ""}`}
       testID={`today-${nutrient}`}
@@ -560,7 +570,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   // flexGrow: the page (and its red margin rule) fills the screen even on an empty day.
   // Bottom padding keeps the last meal clear of the FAB.
-  scroll: { flexGrow: 1, paddingTop: space.m, paddingBottom: 96 },
+  scroll: { flexGrow: 1, paddingTop: space.m },
+  // Room for the FAB inside the page, so the margin rule still runs to the bottom.
+  page: { paddingBottom: 96 },
   fab: {
     position: "absolute",
     right: space.m,
@@ -614,5 +626,8 @@ const styles = StyleSheet.create({
   mealLine: { flexDirection: "row", alignItems: "flex-start" },
   mealName: { flex: 1, paddingRight: space.s },
   skeleton: { borderRadius: 4, marginTop: space.s },
-  retry: { alignSelf: "flex-start", marginTop: space.s },
+  // The text button's 12 dp padding would push its label off the content edge.
+  retry: { alignSelf: "flex-start", marginTop: space.s, marginLeft: -12 },
+  // Same for "‹": its glyph sits 12 dp inside the 48 dp touch target.
+  firstIcon: { marginLeft: -12 },
 });

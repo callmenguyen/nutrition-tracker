@@ -29,7 +29,14 @@ export function NotebookPage({
 
 export type MarginMark = "alert";
 
-type MarginRowProps = ViewProps & { children: ReactNode } & (
+type MarginRowProps = ViewProps & {
+  children: ReactNode;
+  /**
+   * Line height of the row's first line, so the 20 dp mark is centred on it: 24 for Body /
+   * Title Medium (default), 28 for a Title first line (nutrient values).
+   */
+  firstLineHeight?: number;
+} & (
     | {
         /** Status mark drawn inside the margin column (never in the content). */
         mark: MarginMark;
@@ -44,13 +51,14 @@ export function MarginRow({
   children,
   mark,
   markLabel,
+  firstLineHeight = 24,
   style,
   ...rest
 }: MarginRowProps) {
   const { colors } = useTheme();
   return (
     <View style={[styles.row, style]} {...rest}>
-      <View style={styles.gutter}>
+      <View style={[styles.gutter, { paddingTop: (firstLineHeight - 20) / 2 }]}>
         {mark === "alert" ? (
           <SymbolView
             name={{
@@ -82,7 +90,11 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   row: { flexDirection: "row", alignItems: "flex-start" },
-  // paddingTop 2 centres the 20 dp icon on a Body (24 dp) first line; pass style for other variants.
-  gutter: { width: layout.marginColumn, alignItems: "center", paddingTop: 2 },
+  // The mark is centred in the 32 dp left of the rule (at 32 dp), so it never touches the rule.
+  gutter: {
+    width: layout.marginColumn,
+    paddingRight: layout.marginColumn - 32,
+    alignItems: "center",
+  },
   content: { flex: 1, paddingRight: 16 },
 });

@@ -16,6 +16,9 @@ import type {
 } from "@/features/meals/meals";
 
 jest.mock("expo-symbols", () => ({ SymbolView: () => null }));
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
+}));
 jest.mock("@expo/ui/jetpack-compose", () => {
   const { View } =
     jest.requireActual<typeof import("react-native")>("react-native");

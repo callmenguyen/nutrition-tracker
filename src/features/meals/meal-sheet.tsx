@@ -7,10 +7,12 @@ import {
   useRef,
   useState,
   type ComponentRef,
+  useEffect,
 } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -20,6 +22,8 @@ import {
   type TextInput,
   View,
 } from "react-native";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, FormError, TextField } from "@/components/form";
 import { ThemedText } from "@/components/themed-text";
@@ -155,6 +159,20 @@ function SheetBody({
 
   // Back or a tap on the scrim: close suggestions first, then ask before dropping typed data.
   const nameInput = useRef<ComponentRef<typeof TextInput>>(null);
+  const insets = useSafeAreaInsets();
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardOpen(true),
+    );
+    const hidden = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardOpen(false),
+    );
+    return () => {
+      shown.remove();
+      hidden.remove();
+    };
+  }, []);
   useImperativeHandle(ref, () => ({
     focusName: () => {
       if (!editing) nameInput.current?.focus();
@@ -245,7 +263,7 @@ function SheetBody({
         style={[styles.handle, { backgroundColor: colors.outline }]}
         importantForAccessibility="no"
       />
-      <ScrollView keyboardShouldPersistTaps="handled">
+      <ScrollView keyboardShouldPersistTaps="handled" style={styles.body}>
         <ThemedText variant="headline" accessibilityRole="header">
           {editing ? "Sửa món" : "Thêm món"}
         </ThemedText>
@@ -354,27 +372,32 @@ function SheetBody({
         {formError ? (
           <FormError message={formError} testID="meal-form-error" />
         ) : null}
-
-        <View style={styles.actions}>
-          {editing ? (
-            <Button
-              label="Xoá"
-              variant="text"
-              onPress={confirmDelete}
-              disabled={isSubmitting}
-              testID="meal-delete"
-            />
-          ) : (
-            <View />
-          )}
-          <Button
-            label="Lưu"
-            onPress={save}
-            loading={isSubmitting}
-            testID="meal-save"
-          />
-        </View>
       </ScrollView>
+      <View
+        style={[
+          styles.actions,
+          // Above the keyboard (KeyboardAvoidingView) and clear of a 3-button navigation bar.
+          { paddingBottom: keyboardOpen ? space.s : space.l + insets.bottom },
+        ]}
+      >
+        {editing ? (
+          <Button
+            label="Xoá"
+            variant="text"
+            onPress={confirmDelete}
+            disabled={isSubmitting}
+            testID="meal-delete"
+          />
+        ) : (
+          <View />
+        )}
+        <Button
+          label="Lưu"
+          onPress={save}
+          loading={isSubmitting}
+          testID="meal-save"
+        />
+      </View>
     </View>
   );
 }
@@ -387,8 +410,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: space.l,
-    paddingBottom: space.l,
   },
+  // Shrinks so the footer with "Lưu" stays visible above the keyboard (≤ 3 taps, brief).
+  body: { flexShrink: 1 },
   handle: {
     alignSelf: "center",
     width: 32,
@@ -424,6 +448,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: space.l,
+    paddingTop: space.m,
   },
 });
