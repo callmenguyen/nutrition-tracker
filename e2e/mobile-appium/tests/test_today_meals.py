@@ -297,7 +297,8 @@ def long_press(driver, test_id: str):
 
 def test_delete_saved_food_keeps_logged_meals(driver):
     """TC-E2E-15 (Cài đặt › Món đã lưu) · MEAL-13: 'bun' finds the saved Bún nạm; long-press asks first;
-    after deleting it 'bun' suggests nothing, and yesterday's logged Bún nạm keeps 450 kcal."""
+    after deleting it 'bun' suggests nothing, and yesterday's logged Bún nạm keeps 450 kcal.
+    Uses the saved food 'bún NẠM' left by test_suggestion_fills_and_saved_food_follows_latest."""
     open_today(driver)
     by_text(driver, "Cài đặt").click()
     by_id(driver, "settings-saved-foods").click()
@@ -314,7 +315,8 @@ def test_delete_saved_food_keeps_logged_meals(driver):
 
     long_press(driver, "saved-food-row-0")
     by_text(driver, "Xoá").click()
-    wait_until(driver, present("saved-foods-no-match"), timeout=10)
+    # "Không có món nào khớp" while other saved foods remain; the empty state when it was the last one.
+    wait_until(driver, lambda d: present("saved-foods-no-match")(d) or present("saved-foods-empty")(d), timeout=10)
     assert "bún NẠM" not in [f["name"] for f in saved_foods(EMAIL)]
 
     by_id(driver, "screen-saved-foods-back").click()

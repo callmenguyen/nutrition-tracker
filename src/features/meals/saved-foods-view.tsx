@@ -44,9 +44,14 @@ export function SavedFoodsView({ state, onDelete, onRetry, onBack }: Props) {
           onPress: async () => {
             setError(null);
             setDeleting(true);
-            const result = await onDelete(food.id);
-            setDeleting(false);
-            if (!result.ok) setError(result.message);
+            try {
+              const result = await onDelete(food.id);
+              if (!result.ok) setError(result.message);
+            } catch {
+              setError("Không xoá được. Thử lại sau.");
+            } finally {
+              setDeleting(false);
+            }
           },
         },
       ],
@@ -60,14 +65,16 @@ export function SavedFoodsView({ state, onDelete, onRetry, onBack }: Props) {
       testID="screen-saved-foods"
       onBack={onBack}
     >
-      <TextField
-        label="Tìm món"
-        value={query}
-        onChangeText={setQuery}
-        autoCorrect={false}
-        returnKeyType="search"
-        testID="saved-foods-search"
-      />
+      {state.status === "ready" && state.foods.length > 0 ? (
+        <TextField
+          label="Tìm món"
+          value={query}
+          onChangeText={setQuery}
+          autoCorrect={false}
+          returnKeyType="search"
+          testID="saved-foods-search"
+        />
+      ) : null}
       <FormError message={error} testID="saved-foods-delete-error" />
       {state.status === "loading" ? (
         <Skeleton />
@@ -97,6 +104,7 @@ export function SavedFoodsView({ state, onDelete, onRetry, onBack }: Props) {
         <FoodList
           foods={filterFoodsByName(state.foods, query)}
           onLongPress={confirmDelete}
+          disabled={deleting}
         />
       )}
     </FormScreen>
@@ -106,9 +114,12 @@ export function SavedFoodsView({ state, onDelete, onRetry, onBack }: Props) {
 function FoodList({
   foods,
   onLongPress,
+  disabled,
 }: {
   foods: SavedFood[];
   onLongPress: (food: SavedFood) => void;
+  /** While a delete is running: rows are dimmed and ignore long-press. */
+  disabled: boolean;
 }) {
   const { colors } = useTheme();
   if (foods.length === 0) {
@@ -128,7 +139,14 @@ function FoodList({
         <Pressable
           key={food.id}
           onLongPress={() => onLongPress(food)}
+          disabled={disabled}
           accessibilityRole="button"
+          accessibilityState={{ disabled }}
+          // TalkBack: deleting is a named action, not only "double-tap and hold".
+          accessibilityActions={[{ name: "longpress", label: "Xoá" }]}
+          onAccessibilityAction={(e) => {
+            if (e.nativeEvent.actionName === "longpress") onLongPress(food);
+          }}
           accessibilityLabel={`${food.name}, ${formatInt(food.calories)} kcal, đạm ${formatUpTo1(
             food.protein,
           )} g, natri ${formatInt(food.sodium)} mg, đường ${formatUpTo1(food.sugar)} g`}
@@ -137,6 +155,7 @@ function FoodList({
             styles.row,
             { borderColor: colors.outlineVariant },
             pressed && { backgroundColor: colors.surfaceContainer },
+            disabled && styles.disabled,
           ]}
           testID={`saved-food-row-${i}`}
         >
@@ -194,6 +213,7 @@ const styles = StyleSheet.create({
   },
   line: { flexDirection: "row", alignItems: "flex-start" },
   name: { flex: 1, paddingRight: space.s },
+  disabled: { opacity: 0.38 },
   skeleton: { height: 48, borderRadius: 4, marginTop: space.s },
   // The text button's 12 dp padding would push its label off the content edge.
   retry: { alignSelf: "flex-start", marginTop: space.s, marginLeft: -12 },

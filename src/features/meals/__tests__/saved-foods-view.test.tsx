@@ -115,6 +115,37 @@ describe("SavedFoodsView (Cài đặt › Món đã lưu)", () => {
     );
   });
 
+  it("a rejected delete shows an error and the rows stay usable", async () => {
+    onDelete.mockRejectedValueOnce(new Error("boom"));
+    await show({ status: "ready", foods: FOODS });
+    await fireEvent(screen.getByTestId("saved-food-row-0"), "longPress");
+    await answerAlert("Xoá");
+    expect(screen.getByTestId("saved-foods-delete-error").props.children).toBe(
+      "Không xoá được. Thử lại sau.",
+    );
+    await fireEvent(screen.getByTestId("saved-food-row-0"), "longPress");
+    expect(alert).toHaveBeenCalledTimes(2);
+  });
+
+  it("TalkBack can delete through the named long-press action", async () => {
+    await show({ status: "ready", foods: FOODS });
+    const row = screen.getByTestId("saved-food-row-2");
+    expect(row.props.accessibilityActions).toEqual([
+      { name: "longpress", label: "Xoá" },
+    ]);
+    await fireEvent(row, "accessibilityAction", {
+      nativeEvent: { actionName: "longpress" },
+    });
+    expect(alert.mock.calls.at(-1)![1]).toContain("«Đậu phụ»");
+  });
+
+  it("hides the search field when there is nothing to search", async () => {
+    await show({ status: "loading" });
+    expect(screen.queryByTestId("saved-foods-search")).toBeNull();
+    await show({ status: "ready", foods: [] });
+    expect(screen.queryByTestId("saved-foods-search")).toBeNull();
+  });
+
   it("empty, loading and error states", async () => {
     await show({ status: "ready", foods: [] });
     expect(screen.getByTestId("saved-foods-empty")).toBeTruthy();
