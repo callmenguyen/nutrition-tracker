@@ -93,8 +93,17 @@ def checked(driver, test_id: str) -> bool:
     return by_id(driver, test_id).get_attribute("checked") == "true"
 
 
+def scroll_to_top(driver):
+    """Back to the pickers: a scroll left at the end of the 30-day table hides everything above it."""
+    driver.find_elements(
+        AppiumBy.ANDROID_UIAUTOMATOR,
+        'new UiScrollable(new UiSelector().resourceId("chart-scroll")).scrollToBeginning(10)',
+    )
+
+
 def show_table(driver):
     """Opens the table unless it is open; reads the toggle's label, since rows may be off screen."""
+    scroll_to_top(driver)
     toggle = by_id(driver, "chart-table-toggle")
     if "Xem dạng bảng" in (toggle.get_attribute("content-desc") or "") + (toggle.text or ""):
         toggle.click()
@@ -130,6 +139,7 @@ def test_table_shows_totals_and_gaps(driver):
 def test_choices_remembered_after_restart(driver, config):
     """TC-E2E-17 · CHART-06: 30 days + line survive closing the app."""
     open_chart(driver)
+    scroll_to_top(driver)
     by_id(driver, "chart-range-30").click()
     by_id(driver, "chart-kind-line").click()
     snapshot(driver, "30-days-line")

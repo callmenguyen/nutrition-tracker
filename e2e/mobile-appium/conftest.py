@@ -134,6 +134,9 @@ def driver(config: dict):
     options.udid = config["udid"]
     options.app = str(apk)
     options.app_package = config["appPackage"]
+    # Always reinstall: every debug build is versionName 0.0.0, so Appium would otherwise keep an
+    # older APK whose native modules (e.g. Skia, #19) no longer match the JS from Metro.
+    options.enforce_app_install = True
     options.auto_grant_permissions = False  # permission dialogs are part of the flows under test
     options.new_command_timeout = 120
 

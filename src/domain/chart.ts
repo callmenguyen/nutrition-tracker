@@ -139,23 +139,27 @@ export function yDomain(
 
 /**
  * Y positions for threshold labels (canvas px, top = small y): each label sits just above its
- * line, pushed down when it would overlap the label above it (e.g. "An toàn" and "Mục tiêu").
- * Returned in the input order.
+ * line, pushed down when it would overlap the label above it (e.g. "An toàn" and "Mục tiêu"),
+ * and pushed back up so none goes below `maxY` (the X-axis labels). Returned in input order.
  */
 export function spreadLabelPositions(
   lineYs: readonly number[],
   minGap: number,
   lift: number,
+  maxY: number,
 ): number[] {
   const order = lineYs
     .map((y, i) => ({ y: y - lift, i }))
     .sort((a, b) => a.y - b.y);
-  const out: number[] = [];
-  let previous = -Infinity;
-  for (const { y, i } of order) {
-    const placed = Math.max(y, previous + minGap);
-    out[i] = placed;
-    previous = placed;
+  const placed: number[] = [];
+  for (const [k, { y }] of order.entries()) {
+    placed[k] = k === 0 ? y : Math.max(y, placed[k - 1] + minGap);
   }
+  for (let k = placed.length - 1; k >= 0; k--) {
+    const limit = k === placed.length - 1 ? maxY : placed[k + 1] - minGap;
+    placed[k] = Math.min(placed[k], limit);
+  }
+  const out: number[] = [];
+  order.forEach(({ i }, k) => (out[i] = placed[k]));
   return out;
 }

@@ -67,7 +67,7 @@ export function ChartView({
   return (
     <ThemedView style={styles.flex} testID="screen-chart">
       <SafeAreaView edges={["top"]} style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={styles.scroll} testID="chart-scroll">
           <NotebookPage style={styles.page}>
             <MarginRow>
               <ThemedText variant="headline" accessibilityRole="header">

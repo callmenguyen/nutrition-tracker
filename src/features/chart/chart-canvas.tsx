@@ -39,11 +39,11 @@ const HEIGHT = 240;
 const LABEL_SIZE = 12;
 /** Dash patterns keep grey lines apart without colour (DESIGN.md, The Never Colour Alone Rule). */
 const DASHES: Record<ThresholdKind, number[]> = {
-  upper: [6, 4],
+  upper: [10, 3],
   target: [6, 4],
   lower: [2, 4],
   bmr: [2, 4],
-  safe: [10, 4, 2, 4],
+  safe: [6, 4],
 };
 
 /**
@@ -185,6 +185,7 @@ export function ChartCanvas({
                     thresholds.map((l) => yScale(l.value)),
                     LABEL_SIZE + 2,
                     4,
+                    chartBounds.bottom - 2,
                   );
                   return thresholds.map((l, i) => {
                     const y = yScale(l.value);
