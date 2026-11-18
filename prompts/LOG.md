@@ -285,3 +285,11 @@ Mẫu một mục:
   - Không có migration mới: RLS select/delete của `foods` đã có từ #15.
   - Mock backend (ADR-016): đọc và xoá `foods` theo chủ sở hữu, kèm test Jest.
 - **Kết quả:** PR `feat/18-saved-foods`.
+
+## 2026-11-19 · Chạy E2E trên máy thật cho #18
+- **Yêu cầu:** Kết nối điện thoại qua Wi-Fi và chạy E2E.
+- **Quyết định:**
+  - Lượt đầu lỗi toàn bộ vì Metro chưa chạy (`run-test.sh` không tự bật Metro; cần `run-metro.sh`, ADR-014).
+  - `test_delete_saved_food_keeps_logged_meals` lỗi vì bấm giữ mặc định của Appium (~500 ms) trùng ngưỡng `delayLongPress` 500 ms của RN Pressable: test giữ 1,5 giây; không nới điều kiện kiểm tra.
+  - Kết quả: 20/21 ở lượt đủ (chỉ test trên lỗi), sau khi sửa `tests/test_today_meals.py` 8/8 đạt.
+- **Kết quả:** PR `fix/18-e2e-long-press` (Closes #18).
