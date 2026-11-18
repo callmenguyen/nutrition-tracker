@@ -10,6 +10,7 @@ import pytest
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 
+from conftest import restart_app
 from test_auth import TEST_EMAIL, TEST_PASSWORD, by_id, go_to_login, scroll_to, type_into
 
 YEAR = datetime.date.today().year
@@ -148,8 +149,7 @@ def test_onboarding_validation_then_save(driver, config):
     by_id(driver, "onboarding-start").click()
     assert by_id(driver, "screen-today").is_displayed()
 
-    driver.terminate_app(config["appPackage"])
-    driver.activate_app(config["appPackage"])
+    restart_app(driver, config["appPackage"])
     assert by_id(driver, "screen-today").is_displayed()
 
 

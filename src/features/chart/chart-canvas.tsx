@@ -249,6 +249,7 @@ function ThresholdLabels({
     thresholds.map((l) => yScale(l.value)),
     LABEL_LINE,
     LABEL_LINE + 2,
+    0,
     bounds.bottom - LABEL_LINE,
   );
   return (

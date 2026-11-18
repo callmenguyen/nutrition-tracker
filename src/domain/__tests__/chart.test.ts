@@ -197,24 +197,29 @@ describe("parseChartPrefs", () => {
 
 describe("spreadLabelPositions", () => {
   it("keeps labels just above lines that are far apart", () => {
-    expect(spreadLabelPositions([100, 40], 14, 4, 200)).toEqual([96, 36]);
+    expect(spreadLabelPositions([100, 40], 14, 4, 0, 200)).toEqual([96, 36]);
   });
 
   it("pushes a label down when it would overlap the one above (example 1: An toàn / Mục tiêu)", () => {
     // Lines at 1949 and 2056 kcal are ~5 px apart on a 0–4200 axis.
-    expect(spreadLabelPositions([120, 115, 10], 14, 4, 200)).toEqual([
+    expect(spreadLabelPositions([120, 115, 10], 14, 4, 0, 200)).toEqual([
       125, 111, 6,
     ]);
   });
 
   it("keeps the lowest label above the X axis, moving the ones above it up", () => {
     // Three lines close together near 0 (small sugar values) on a chart whose labels end at 200.
-    expect(spreadLabelPositions([198, 196, 194], 14, 4, 200)).toEqual([
+    expect(spreadLabelPositions([198, 196, 194], 14, 4, 0, 200)).toEqual([
       200, 186, 172,
     ]);
   });
 
+  it("keeps the top label inside the canvas when its line is near the top", () => {
+    // Sodium under the limit: the upper line is ~10 px below the top, its label would start at -8.
+    expect(spreadLabelPositions([10, 120], 18, 18, 0, 200)).toEqual([0, 102]);
+  });
+
   it("separates two lines drawn at the same value", () => {
-    expect(spreadLabelPositions([80, 80], 14, 4, 200)).toEqual([76, 90]);
+    expect(spreadLabelPositions([80, 80], 14, 4, 0, 200)).toEqual([76, 90]);
   });
 });
