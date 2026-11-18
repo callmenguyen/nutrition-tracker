@@ -276,3 +276,12 @@ Mẫu một mục:
   - DESIGN.md và `.impeccable/design.json`: chủ dự án chọn cài skill impeccable rồi chạy documenter (đã cài vào `.claude/` của dự án); `.claude/` được gitignore.
   - Finish review (impeccable): sửa trong PR này "Lưu" trên bàn phím, inset thanh điều hướng, vạch lề hết trang, vị trí dấu "!", căn nút chữ. Chủ dự án chốt: **giữ font hệ thống** (không nhúng Roboto) và **lịch chọn ngày theo ngôn ngữ máy**.
 - **Kết quả:** PR `feat/17-meal-sheet`.
+
+## 2026-11-18 · `/kessie-skills:proj build #18` — Cài đặt › Món đã lưu
+- **Yêu cầu:** Làm issue #18: xem, tìm và xoá món đã lưu mà không ảnh hưởng món đã ghi (MEAL-13).
+- **Quyết định:**
+  - Xoá bằng **bấm giữ** + hộp thoại xác nhận (spec cho phép vuốt hoặc bấm giữ; không thêm thư viện gesture); dòng gợi ý dưới tiêu đề nói cách xoá.
+  - Danh sách theo tên chuẩn hoá A→Z; tìm kiếm lọc ở client bằng `normalizeFoodName` (không dùng `suggest_foods` vì giới hạn 5).
+  - Không có migration mới: RLS select/delete của `foods` đã có từ #15.
+  - Mock backend (ADR-016): đọc và xoá `foods` theo chủ sở hữu, kèm test Jest.
+- **Kết quả:** PR `feat/18-saved-foods`.

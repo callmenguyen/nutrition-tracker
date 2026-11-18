@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-/** Cài đặt is a stack inside its tab: index → Hồ sơ (later Mục tiêu, Nhắc nhở, Món đã lưu). */
+/** Cài đặt is a stack inside its tab: index → Hồ sơ, Mục tiêu, Món đã lưu (later Nhắc nhở). */
 export default function SettingsLayout() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }

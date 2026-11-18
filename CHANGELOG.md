@@ -7,6 +7,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 ## [Unreleased]
 
 ### Thêm
+- Cài đặt › Món đã lưu: danh sách món đã lưu theo A→Z, ô tìm kiếm không phân biệt dấu; bấm giữ một món để xoá (có xác nhận). Món đã xoá không còn trong gợi ý, các món đã ghi trước đó không đổi ([#18](https://github.com/callmenguyen/nutrition-tracker/issues/18)).
 - Ghi món: nút "+" và "Thêm món" mở bottom sheet nhập tên, calo, đạm, natri, đường và ngày; gõ tên thì gợi ý tối đa 5 món đã lưu (không phân biệt dấu), chọn gợi ý thì tự điền dinh dưỡng; chạm vào món để sửa hoặc xoá (có xác nhận); báo lỗi đúng trường; mất mạng thì giữ nguyên dữ liệu đã nhập, bấm Lưu lại không ghi trùng ([#17](https://github.com/callmenguyen/nutrition-tracker/issues/17)).
 - Tab Hôm nay: thanh chọn ngày (‹ ›, lịch Material 3 khoá ngày tương lai, chip "Hôm nay"), khối Calo với vạch dung lượng và dòng "Còn / Vượt X kcal", ba hàng đạm, natri, đường, danh sách món theo thứ tự đã ghi; vượt ngưỡng trên thì đổi màu, có "!" trong lề và chữ "Vượt ngưỡng"; trạng thái trống, đang tải, lỗi kèm "Thử lại" ([#16](https://github.com/callmenguyen/nutrition-tracker/issues/16)).
 - Mục tiêu: màn tóm tắt BMI, BMR, TDEE và mục tiêu gợi ý ở cuối Onboarding; Cài đặt › Mục tiêu để sửa mức điều chỉnh calo và tự đặt mục tiêu calo, đạm, natri, đường, có nhãn "Tự đặt · gợi ý" và nút "Dùng gợi ý"; cảnh báo W1–W6 màu vàng ngay dưới trường, không chặn lưu ([#14](https://github.com/callmenguyen/nutrition-tracker/issues/14)).

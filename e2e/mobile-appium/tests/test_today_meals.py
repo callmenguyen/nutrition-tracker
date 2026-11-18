@@ -7,6 +7,7 @@ yesterday (TC-E2E-10), today (TC-E2E-11), 2 days ago (TC-E2E-13, 16), 3 days ago
 """
 
 import datetime
+import time
 
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
@@ -272,7 +273,7 @@ def test_order_kept_after_restart_and_edit(driver, config):
 
 
 def test_delete_asks_and_keeps_saved_food(driver):
-    """TC-E2E-15 (delete part; Cài đặt › Món đã lưu is #18) · MEAL-12."""
+    """TC-E2E-15 (delete part; the saved-food part is the next test) · MEAL-12."""
     go_to_day(driver, 3)
     by_id(driver, "meal-row-1").click()
     by_id(driver, "meal-delete").click()
@@ -288,6 +289,48 @@ def test_delete_asks_and_keeps_saved_food(driver):
     wait_until(driver, lambda d: meal_names(d) == ["Món A", "Món C"], timeout=10)
     assert by_id(driver, "today-calories").text == "450"
     assert "Món B" in [f["name"] for f in saved_foods(EMAIL)]
+
+
+def long_press(driver, test_id: str):
+    driver.execute_script("mobile: longClickGesture", {"elementId": by_id(driver, test_id).id})
+
+
+def test_delete_saved_food_keeps_logged_meals(driver):
+    """TC-E2E-15 (Cài đặt › Món đã lưu) · MEAL-13: 'bun' finds the saved Bún nạm; long-press asks first;
+    after deleting it 'bun' suggests nothing, and yesterday's logged Bún nạm keeps 450 kcal."""
+    open_today(driver)
+    by_text(driver, "Cài đặt").click()
+    by_id(driver, "settings-saved-foods").click()
+    assert by_id(driver, "screen-saved-foods").is_displayed()
+    type_into(driver, "saved-foods-search", "bun")
+    wait_until(driver, absent("saved-food-row-1"), timeout=10)
+    assert by_id(driver, "saved-food-row-0-name").text == "bún NẠM"
+    snapshot(driver, "saved-foods")
+
+    long_press(driver, "saved-food-row-0")
+    assert dialog_title(driver) == "Xoá món đã lưu?"
+    by_text(driver, "Hủy").click()
+    assert by_id(driver, "saved-food-row-0-name").text == "bún NẠM"
+
+    long_press(driver, "saved-food-row-0")
+    by_text(driver, "Xoá").click()
+    wait_until(driver, present("saved-foods-no-match"), timeout=10)
+    assert "bún NẠM" not in [f["name"] for f in saved_foods(EMAIL)]
+
+    by_id(driver, "screen-saved-foods-back").click()
+    by_text(driver, "Hôm nay").click()
+    go_to_day(driver, 1)
+    assert meal_names(driver) == ["Bún nạm"]
+    assert by_id(driver, "today-calories").text == "450"
+
+    open_add_sheet(driver)
+    type_into(driver, "meal-name", "bun")
+    time.sleep(2)  # past the 250 ms debounce and the request: a suggestion would be on screen by now
+    assert not driver.find_elements(AppiumBy.ID, "meal-suggestion-0")
+    close_keyboard(driver)
+    driver.back()
+    by_text(driver, "Bỏ").click()
+    wait_until(driver, absent("meal-sheet"))
 
 
 def test_network_errors_never_fake_a_save(driver):
