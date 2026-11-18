@@ -11,13 +11,15 @@ import { useMemo, useRef } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { Bar, CartesianChart, Line } from "victory-native";
 
-import type {
-  ChartKind,
-  SeriesPoint,
-  Threshold,
-  ThresholdKind,
+import {
+  type ChartKind,
+  type SeriesPoint,
+  spreadLabelPositions,
+  type Threshold,
+  type ThresholdKind,
 } from "@/domain/chart";
 import type { Day } from "@/domain/day";
+import { formatInt } from "@/domain/format";
 import { useTheme } from "@/hooks/use-theme";
 
 export type ChartCanvasProps = {
@@ -87,116 +89,133 @@ export function ChartCanvas({
   const step = series.length > 7 ? 5 : 1;
 
   return (
-    <Pressable
-      onPress={(e) => {
-        const invert = xScaleRef.current;
-        if (!invert) return;
-        const i = Math.round(invert(e.nativeEvent.locationX));
-        const point = series[Math.min(series.length - 1, Math.max(0, i))];
-        if (point) onSelectDay(point.day);
-      }}
+    // TalkBack reads one image with the summary; picking a day goes through the table view
+    // (CHART-14), since a double-tap on the canvas has no meaningful position.
+    <View
       accessible
+      accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
       style={styles.box}
       testID="chart-canvas"
     >
-      <View style={styles.fill} pointerEvents="none">
-        <CartesianChart
-          data={data}
-          xKey="i"
-          yKeys={["value"]}
-          domain={{ y: domain }}
-          domainPadding={{ left: 16, right: 16 }}
-          padding={{ right: 4 }}
-          onScaleChange={(xScale) => {
-            xScaleRef.current = (x) => xScale.invert(x);
-          }}
-          xAxis={{
-            font,
-            labelColor: colors.onSurfaceVariant,
-            lineColor: colors.outlineVariant,
-            tickValues: series
-              .map((_, i) => i)
-              .filter((i) => (series.length - 1 - i) % step === 0),
-            formatXLabel: (i) => series[i]?.label ?? "",
-          }}
-          yAxis={[
-            {
+      <Pressable
+        importantForAccessibility="no-hide-descendants"
+        accessible={false}
+        onPress={(e) => {
+          const invert = xScaleRef.current;
+          if (!invert) return;
+          const i = Math.round(invert(e.nativeEvent.locationX));
+          const point = series[Math.min(series.length - 1, Math.max(0, i))];
+          if (point) onSelectDay(point.day);
+        }}
+        style={styles.fill}
+      >
+        <View style={styles.fill} pointerEvents="none">
+          <CartesianChart
+            data={data}
+            xKey="i"
+            yKeys={["value"]}
+            domain={{ y: domain }}
+            domainPadding={{ left: 16, right: 16 }}
+            padding={{ right: 4 }}
+            onScaleChange={(xScale) => {
+              xScaleRef.current = (x) => xScale.invert(x);
+            }}
+            xAxis={{
               font,
               labelColor: colors.onSurfaceVariant,
               lineColor: colors.outlineVariant,
-              tickCount: 5,
-            },
-          ]}
-        >
-          {({ points, chartBounds, xScale, yScale }) => (
-            <>
-              {selectedIndex >= 0 ? (
-                <SkiaLine
-                  p1={vec(xScale(selectedIndex), chartBounds.top)}
-                  p2={vec(xScale(selectedIndex), chartBounds.bottom)}
-                  color={colors.outlineVariant}
-                  strokeWidth={2}
-                />
-              ) : null}
-              {kind === "bar" ? (
-                <Bar
-                  points={points.value}
-                  chartBounds={chartBounds}
-                  color={color}
-                  innerPadding={0.35}
-                  roundedCorners={{ topLeft: 3, topRight: 3 }}
-                />
-              ) : (
-                <>
-                  <Line
-                    points={points.value}
-                    color={color}
+              tickValues: series
+                .map((_, i) => i)
+                .filter((i) => (series.length - 1 - i) % step === 0),
+              formatXLabel: (i) => series[i]?.label ?? "",
+            }}
+            yAxis={[
+              {
+                font,
+                labelColor: colors.onSurfaceVariant,
+                lineColor: colors.outlineVariant,
+                tickCount: 5,
+                formatYLabel: (v) => formatInt(Number(v)), // "4.000" (CLAUDE.md number style)
+              },
+            ]}
+          >
+            {({ points, chartBounds, xScale, yScale }) => (
+              <>
+                {selectedIndex >= 0 ? (
+                  <SkiaLine
+                    p1={vec(xScale(selectedIndex), chartBounds.top)}
+                    p2={vec(xScale(selectedIndex), chartBounds.bottom)}
+                    color={colors.outlineVariant}
                     strokeWidth={2}
-                    connectMissingData={false}
                   />
-                  {/* Dots, so a day between two gaps still shows (CHART-02: "3 điểm"). */}
-                  {points.value.map((p) =>
-                    typeof p.y === "number" ? (
-                      <Circle
-                        key={p.xValue}
-                        cx={p.x}
-                        cy={p.y}
-                        r={4}
-                        color={color}
-                      />
-                    ) : null,
-                  )}
-                </>
-              )}
-              {thresholds.map((l) => {
-                const y = yScale(l.value);
-                const width = font.measureText(l.label).width;
-                return (
-                  <Group key={l.kind}>
-                    <SkiaLine
-                      p1={vec(chartBounds.left, y)}
-                      p2={vec(chartBounds.right, y)}
-                      color={lineColor[l.kind]}
-                      strokeWidth={1.5}
-                    >
-                      <DashPathEffect intervals={DASHES[l.kind]} />
-                    </SkiaLine>
-                    <SkiaText
-                      x={chartBounds.right - width - 2}
-                      y={y - 4}
-                      text={l.label}
-                      font={font}
-                      color={lineColor[l.kind]}
+                ) : null}
+                {kind === "bar" ? (
+                  <Bar
+                    points={points.value}
+                    chartBounds={chartBounds}
+                    color={color}
+                    innerPadding={0.35}
+                    roundedCorners={{ topLeft: 3, topRight: 3 }}
+                  />
+                ) : (
+                  <>
+                    <Line
+                      points={points.value}
+                      color={color}
+                      strokeWidth={2}
+                      connectMissingData={false}
                     />
-                  </Group>
-                );
-              })}
-            </>
-          )}
-        </CartesianChart>
-      </View>
-    </Pressable>
+                    {/* Dots, so a day between two gaps still shows (CHART-02: "3 điểm"). */}
+                    {points.value.map((p) =>
+                      typeof p.y === "number" ? (
+                        <Circle
+                          key={p.xValue}
+                          cx={p.x}
+                          cy={p.y}
+                          r={4}
+                          color={color}
+                        />
+                      ) : null,
+                    )}
+                  </>
+                )}
+                {(() => {
+                  const labelYs = spreadLabelPositions(
+                    thresholds.map((l) => yScale(l.value)),
+                    LABEL_SIZE + 2,
+                    4,
+                  );
+                  return thresholds.map((l, i) => {
+                    const y = yScale(l.value);
+                    const width = font.measureText(l.label).width;
+                    return (
+                      <Group key={l.kind}>
+                        <SkiaLine
+                          p1={vec(chartBounds.left, y)}
+                          p2={vec(chartBounds.right, y)}
+                          color={lineColor[l.kind]}
+                          strokeWidth={1.5}
+                        >
+                          <DashPathEffect intervals={DASHES[l.kind]} />
+                        </SkiaLine>
+                        <SkiaText
+                          x={chartBounds.right - width - 2}
+                          y={labelYs[i]}
+                          text={l.label}
+                          font={font}
+                          color={lineColor[l.kind]}
+                        />
+                      </Group>
+                    );
+                  });
+                })()}
+              </>
+            )}
+          </CartesianChart>
+        </View>
+      </Pressable>
+    </View>
   );
 }
 

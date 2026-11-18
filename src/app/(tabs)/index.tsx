@@ -1,5 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 
 import { type Day, parseRequestedDay } from "@/domain/day";
 import { useTargets } from "@/features/goals/goals";
@@ -32,6 +32,11 @@ export default function TodayScreen() {
     const asked = parseRequestedDay(requested, today);
     if (asked) setPicked(asked === today ? null : asked);
   }
+  // Drop the params once applied, so a remount of this tab does not apply an old request again.
+  const router = useRouter();
+  useEffect(() => {
+    if (request) router.setParams({ day: undefined, at: undefined });
+  }, [request, router]);
   const meals = useMealsForDay(day);
   const targets = useTargets();
   const [sheet, setSheet] = useState<SheetTarget | null>(null);

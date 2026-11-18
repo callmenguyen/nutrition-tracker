@@ -7,6 +7,7 @@ import {
   type DailyTotal,
   DEFAULT_CHART_PREFS,
   parseChartPrefs,
+  spreadLabelPositions,
   totalsOn,
   yDomain,
 } from "@/domain/chart";
@@ -191,5 +192,20 @@ describe("parseChartPrefs", () => {
     ).toEqual({ ...DEFAULT_CHART_PREFS, range: 30 });
     expect(parseChartPrefs("{not json")).toEqual(DEFAULT_CHART_PREFS);
     expect(parseChartPrefs("[]")).toEqual(DEFAULT_CHART_PREFS);
+  });
+});
+
+describe("spreadLabelPositions", () => {
+  it("keeps labels just above lines that are far apart", () => {
+    expect(spreadLabelPositions([100, 40], 14, 4)).toEqual([96, 36]);
+  });
+
+  it("pushes a label down when it would overlap the one above (example 1: An toàn / Mục tiêu)", () => {
+    // Lines at 1949 and 2056 kcal are ~5 px apart on a 0–4200 axis.
+    expect(spreadLabelPositions([120, 115, 10], 14, 4)).toEqual([125, 111, 6]);
+  });
+
+  it("separates two lines drawn at the same value", () => {
+    expect(spreadLabelPositions([80, 80], 14, 4)).toEqual([76, 90]);
   });
 });

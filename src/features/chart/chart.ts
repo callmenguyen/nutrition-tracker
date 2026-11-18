@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   type ChartPrefs,
@@ -9,7 +9,9 @@ import {
   parseChartPrefs,
 } from "@/domain/chart";
 import { addDays, type Day } from "@/domain/day";
+import type { Targets } from "@/domain/nutrition";
 import { useAuth } from "@/features/auth/auth-provider";
+import type { ChartState } from "@/features/chart/chart-view";
 import { supabase } from "@/lib/supabase";
 
 /** Days fetched at once: the 30-day range; the 7-day range is a slice of it (Chart.md §3). */
@@ -69,6 +71,8 @@ export function useChartPrefs(): {
 } {
   const [prefs, setPrefs] = useState<ChartPrefs>(DEFAULT_CHART_PREFS);
   const [ready, setReady] = useState(false);
+  // Latest prefs for update(), so the state updater stays pure and storage is written once.
+  const current = useRef(prefs);
 
   useEffect(() => {
     let alive = true;
@@ -77,7 +81,8 @@ export function useChartPrefs(): {
       .catch(() => null)
       .then((raw) => {
         if (!alive) return;
-        setPrefs(parseChartPrefs(raw));
+        current.current = parseChartPrefs(raw);
+        setPrefs(current.current);
         setReady(true);
       });
     return () => {
@@ -86,15 +91,34 @@ export function useChartPrefs(): {
   }, []);
 
   const update = useCallback((change: Partial<ChartPrefs>) => {
-    setPrefs((current) => {
-      const next = { ...current, ...change };
-      // A failed write only means the choice is not remembered next time.
-      AsyncStorage.setItem(CHART_PREFS_STORAGE_KEY, JSON.stringify(next)).catch(
-        () => undefined,
-      );
-      return next;
-    });
+    const next = { ...current.current, ...change };
+    current.current = next;
+    setPrefs(next);
+    // A failed write only means the choice is not remembered next time.
+    AsyncStorage.setItem(CHART_PREFS_STORAGE_KEY, JSON.stringify(next)).catch(
+      () => undefined,
+    );
   }, []);
 
   return { prefs, ready, update };
+}
+
+/**
+ * Screen state from the queries (CHART-13): a failed load shows the error even when older totals
+ * are cached, never stale numbers; while "Thử lại" refetches after an error, it shows loading.
+ */
+export function chartScreenState(input: {
+  totals: { data?: DailyTotal[]; isError: boolean; isFetching: boolean };
+  targets: { targets?: Targets; isError: boolean };
+  prefsReady: boolean;
+  onRetry: () => void;
+}): ChartState {
+  const { totals, targets, prefsReady, onRetry } = input;
+  if (totals.isError && totals.isFetching) return { kind: "loading" };
+  if (totals.isError || (targets.isError && !targets.targets)) {
+    return { kind: "error", onRetry };
+  }
+  return prefsReady && totals.data && targets.targets
+    ? { kind: "ready", totals: totals.data, targets: targets.targets }
+    : { kind: "loading" };
 }

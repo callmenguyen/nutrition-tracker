@@ -94,8 +94,10 @@ def checked(driver, test_id: str) -> bool:
 
 
 def show_table(driver):
-    if not driver.find_elements(AppiumBy.ID, "chart-row-0"):
-        by_id(driver, "chart-table-toggle").click()
+    """Opens the table unless it is open; reads the toggle's label, since rows may be off screen."""
+    toggle = by_id(driver, "chart-table-toggle")
+    if "Xem dạng bảng" in (toggle.get_attribute("content-desc") or "") + (toggle.text or ""):
+        toggle.click()
 
 
 def row_value(driver, i: int) -> str:
