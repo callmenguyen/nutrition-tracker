@@ -24,7 +24,7 @@ const MIN_PASSWORD_LENGTH = 6; // Supabase default
 /** Tables the app reads and writes; each has one row per user (primary key user_id). */
 const TABLES = new Set(["profiles", "goals", "user_settings"]);
 /** Many rows per user: read, delete, and written only through rpc/log_meal (like the app). */
-const MEAL_ENTRIES = "meal_entries";
+const MANY_ROW_TABLES = new Set(["meal_entries", "foods"]);
 
 type User = {
   id: string;
@@ -432,9 +432,11 @@ export function createMockBackend(): { server: Server } {
   ) {
     const table = url.pathname.slice("/rest/v1/".length);
     if (table.startsWith("rpc/")) return rpc(req, res, table.slice(4), body);
-    const isMeals = table === MEAL_ENTRIES;
+    const isMany = MANY_ROW_TABLES.has(table);
+    const manyRows = () =>
+      table === "foods" ? state.foods : state.mealEntries;
     const rows = state.tables.get(table);
-    if (!rows && !isMeals) return notMocked(req, res, url.pathname);
+    if (!rows && !isMany) return notMocked(req, res, url.pathname);
     const userId = userIdFrom(req);
 
     if (req.method === "GET") {
@@ -457,8 +459,8 @@ export function createMockBackend(): { server: Server } {
       }
       const own = !userId
         ? []
-        : isMeals
-          ? state.mealEntries.filter((r) => r.user_id === userId)
+        : isMany
+          ? manyRows().filter((r) => r.user_id === userId)
           : [rows!.get(userId)].filter((r): r is Row => !!r);
       const matches = own
         .filter((row) => filters.every(([k, v]) => String(row[k]) === v))
@@ -519,7 +521,7 @@ export function createMockBackend(): { server: Server } {
         : send(res, 201);
     }
 
-    if (req.method === "DELETE" && isMeals) {
+    if (req.method === "DELETE" && isMany) {
       const filters = [...url.searchParams].map(([k, v]) => {
         if (!v.startsWith("eq.")) return null;
         return [k, v.slice(3)] as const;
@@ -528,11 +530,13 @@ export function createMockBackend(): { server: Server } {
         return notMocked(req, res, `${url.pathname}?${url.searchParams}`);
       }
       // RLS: only the caller's own rows; anything else is silently left alone, like PostgREST.
-      state.mealEntries = state.mealEntries.filter(
+      const kept = manyRows().filter(
         (r) =>
           r.user_id !== userId ||
           !filters.every((f) => String(r[f![0]]) === f![1]),
       );
+      if (table === "foods") state.foods = kept;
+      else state.mealEntries = kept;
       return send(res, 204);
     }
 

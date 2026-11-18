@@ -316,7 +316,7 @@ describe("tables", () => {
 
   it("answers 501 for a table that is not mocked yet", async () => {
     const { client } = await signedIn("a@example.com");
-    const { status, error } = await client.from("foods").select("*");
+    const { status, error } = await client.from("activities").select("*");
     expect(status).toBe(501);
     expect(error?.message).toMatch(/not mocked/);
   });
@@ -644,5 +644,64 @@ describe("log_meal, suggest_foods, delete (#17)", () => {
     expect((await client.rpc("log_meal", meal)).error).toBeNull();
     expect((await mealsToday(client)).data).toHaveLength(1);
     expect((await foodsOf("a@example.com"))[0].use_count).toBe(1);
+  });
+});
+
+describe("Cài đặt › Món đã lưu: foods read and delete (#18)", () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const log = (client: SupabaseClient, name: string, kcal = 450) =>
+    client.rpc("log_meal", {
+      p_id: crypto.randomUUID(),
+      p_eaten_on: today,
+      p_name: name,
+      p_calories_kcal: kcal,
+      p_protein_g: 25,
+      p_sodium_mg: 1800,
+      p_sugar_g: 6,
+    });
+  const listFoods = (client: SupabaseClient) =>
+    client
+      .from("foods")
+      .select("id, name, calories_kcal")
+      .order("name_normalized")
+      .order("id");
+
+  it("lists only the user's saved foods, A→Z by normalized name", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    await log(a.client, "Phở bò");
+    await log(a.client, "Bún nạm");
+    await log(a.client, "Đậu phụ", 120);
+    await log(b.client, "Cơm tấm");
+    const { data, error } = await listFoods(a.client);
+    expect(error).toBeNull();
+    expect(data?.map((f) => f.name)).toEqual(["Bún nạm", "Đậu phụ", "Phở bò"]);
+    expect(data?.[1]).toMatchObject({ calories_kcal: 120 });
+  });
+
+  it("MEAL-13: a deleted food leaves suggestions; logged meals keep their values", async () => {
+    const { client } = await signedIn("a@example.com");
+    await log(client, "Bún nạm");
+    const [food] = (await listFoods(client)).data!;
+    const { error } = await client.from("foods").delete().eq("id", food.id);
+    expect(error).toBeNull();
+    expect((await listFoods(client)).data).toEqual([]);
+    expect(
+      (await client.rpc("suggest_foods", { p_query: "bun" })).data,
+    ).toEqual([]);
+    const meals = await client
+      .from("meal_entries")
+      .select("name, calories_kcal")
+      .eq("eaten_on", today);
+    expect(meals.data).toEqual([{ name: "Bún nạm", calories_kcal: 450 }]);
+  });
+
+  it("another user's delete leaves A's saved food alone", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    await log(a.client, "Bún nạm");
+    const [food] = (await listFoods(a.client)).data!;
+    await b.client.from("foods").delete().eq("id", food.id);
+    expect((await listFoods(a.client)).data).toHaveLength(1);
   });
 });

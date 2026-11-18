@@ -106,10 +106,8 @@ export async function logMeal(id: string, m: MealInput): Promise<SaveResult> {
     : { ok: true };
 }
 
-/** Deletes a logged meal; its saved food stays (MEAL-12). */
-export async function deleteMeal(id: string): Promise<SaveResult> {
-  const { error } = await supabase.from("meal_entries").delete().eq("id", id);
-  return error
+const deleteResult = (error: { message: string } | null): SaveResult =>
+  error
     ? {
         ok: false,
         message: /network|fetch/i.test(error.message)
@@ -117,9 +115,23 @@ export async function deleteMeal(id: string): Promise<SaveResult> {
           : "Không xoá được. Thử lại sau.",
       }
     : { ok: true };
+
+/** Deletes a logged meal; its saved food stays (MEAL-12). */
+export async function deleteMeal(id: string): Promise<SaveResult> {
+  const { error } = await supabase.from("meal_entries").delete().eq("id", id);
+  return deleteResult(error);
 }
 
-/** After a write: every day's list (a save can move a meal to another day) and suggestions. */
+/** Deletes a saved food; logged meals keep their own copies of name and values (MEAL-13). */
+export async function deleteSavedFood(id: string): Promise<SaveResult> {
+  const { error } = await supabase.from("foods").delete().eq("id", id);
+  return deleteResult(error);
+}
+
+/**
+ * After a write: every day's list (a save can move a meal to another day), suggestions and the
+ * saved-food list (a save updates its saved food).
+ */
 function useRefreshAfterWrite() {
   const queryClient = useQueryClient();
   const { session } = useAuth();
@@ -129,6 +141,7 @@ function useRefreshAfterWrite() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["meals", userId] }),
       queryClient.invalidateQueries({ queryKey: ["food-suggestions", userId] }),
+      queryClient.invalidateQueries({ queryKey: ["saved-foods", userId] }),
     ]);
   };
 }
@@ -145,6 +158,11 @@ export function useLogMeal() {
 export function useDeleteMeal() {
   const refresh = useRefreshAfterWrite();
   return useMutation({ mutationFn: deleteMeal, onSuccess: refresh });
+}
+
+export function useDeleteSavedFood() {
+  const refresh = useRefreshAfterWrite();
+  return useMutation({ mutationFn: deleteSavedFood, onSuccess: refresh });
 }
 
 // ------------------------------------------------------------- suggestions
@@ -177,6 +195,28 @@ export function useFoodSuggestions(text: string) {
       const { data, error } = await supabase.rpc("suggest_foods", {
         p_query: query,
       });
+      if (error) throw error;
+      return (data as FoodRow[]).map(fromRow);
+    },
+  });
+}
+
+// ------------------------------------------------------------ saved foods
+export type SavedFood = FoodSuggestion;
+
+/** All saved foods of the user, A→Z by normalized name, for Cài đặt › Món đã lưu (MealLog.md §2). */
+export function useSavedFoods() {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+  return useQuery({
+    queryKey: ["saved-foods", userId] as const,
+    enabled: !!userId,
+    queryFn: async (): Promise<SavedFood[]> => {
+      const { data, error } = await supabase
+        .from("foods")
+        .select("id, name, calories_kcal, protein_g, sodium_mg, sugar_g")
+        .order("name_normalized")
+        .order("id");
       if (error) throw error;
       return (data as FoodRow[]).map(fromRow);
     },

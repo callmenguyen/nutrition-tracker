@@ -36,6 +36,8 @@
 > **Tình trạng theo issue (#16, 2026-11-16):** TC-E2E-09 và TC-E2E-12 chạy đủ trong `tests/test_today.py`. Phần hiển thị của TC-E2E-10 (món của hôm qua chỉ hiện ở hôm qua) và phần thứ tự của TC-E2E-14 (thứ tự giữ nguyên sau khi tắt app mở lại) chạy với món seed qua mock backend (ADR-016). Phần thêm và sửa món qua bottom sheet làm ở #17.
 >
 > **Tình trạng theo issue (#17, 2026-11-17):** `tests/test_today_meals.py` chạy qua bottom sheet thật: TC-E2E-10, TC-E2E-11, TC-E2E-13, TC-E2E-14 (đủ, gồm sửa món đầu tiên sau khi mở lại app), TC-E2E-16, phần xoá của TC-E2E-15 (Cài đặt › Món đã lưu làm ở #18), và MEAL-16/MEAL-17 bằng lỗi mạng giả của mock (`POST /__test/fault`). Bàn phím số (MEAL-19) kiểm bằng component test vì UiAutomator không đọc được loại bàn phím.
+>
+> **Tình trạng theo issue (#18, 2026-11-18):** phần Cài đặt › Món đã lưu của TC-E2E-15 (MEAL-13) nằm trong `tests/test_today_meals.py::test_delete_saved_food_keeps_logged_meals`: tìm "bun", bấm giữ → Hủy, bấm giữ → Xoá, rồi gõ "bun" trong sheet không còn gợi ý và món đã ghi hôm qua vẫn 450 kcal.
 
 ### 0.2.0 (Workout)
 | Mã | AC | Tiền điều kiện | Bước chính | Kết quả mong đợi |

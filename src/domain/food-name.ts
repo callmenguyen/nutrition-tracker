@@ -27,3 +27,13 @@ export function isValidFoodName(name: string): boolean {
   const cleaned = cleanFoodName(name);
   return cleaned.length >= 1 && cleaned.length <= FOOD_NAME_MAX;
 }
+
+/** Foods whose normalized name contains the normalized text, in their original order; all for blank text. */
+export function filterFoodsByName<T extends { name: string }>(
+  foods: T[],
+  text: string,
+): T[] {
+  const query = normalizeFoodName(text);
+  if (!query) return foods;
+  return foods.filter((f) => normalizeFoodName(f.name).includes(query));
+}

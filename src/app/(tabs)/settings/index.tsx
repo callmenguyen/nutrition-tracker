@@ -11,7 +11,7 @@ import { formatInt } from "@/domain/format";
 import { useTargets } from "@/features/goals/goals";
 import { useProfile } from "@/features/profile/profile";
 
-/** Cài đặt. 0.1.0 adds Nhắc nhở, Món đã lưu, Xoá tài khoản in later issues. */
+/** Cài đặt. 0.1.0 adds Nhắc nhở and Xoá tài khoản in later issues. */
 export default function SettingsScreen() {
   const router = useRouter();
   const { session } = useAuth();
@@ -49,6 +49,11 @@ export default function SettingsScreen() {
         }
         onPress={() => router.push("/settings/goals")}
         testID="settings-goals"
+      />
+      <ListRow
+        label="Món đã lưu"
+        onPress={() => router.push("/settings/saved-foods")}
+        testID="settings-saved-foods"
       />
       <ThemedText variant="titleMedium">Tài khoản</ThemedText>
       <ThemedText
