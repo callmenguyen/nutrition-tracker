@@ -4,6 +4,7 @@ import {
   addDays,
   formatDayVi,
   fromPickerDate,
+  parseRequestedDay,
   isAfterDay,
   localDateOf,
   toPickerDateIso,
@@ -52,5 +53,19 @@ describe("day (ADR-005: local calendar day as YYYY-MM-DD)", () => {
     expect(fromPickerDate(new Date(toPickerDateIso("2028-02-29")))).toBe(
       "2028-02-29",
     );
+  });
+});
+
+describe("parseRequestedDay (Biểu đồ › Mở ngày này)", () => {
+  const today = "2026-11-18";
+  it("accepts a past day or today", () => {
+    expect(parseRequestedDay("2026-11-13", today)).toBe("2026-11-13");
+    expect(parseRequestedDay(today, today)).toBe(today);
+  });
+  it("refuses missing, malformed, impossible or future days", () => {
+    expect(parseRequestedDay(undefined, today)).toBeNull();
+    expect(parseRequestedDay("13/11/2026", today)).toBeNull();
+    expect(parseRequestedDay("2026-02-30", today)).toBeNull();
+    expect(parseRequestedDay("2026-11-19", today)).toBeNull();
   });
 });

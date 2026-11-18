@@ -10,7 +10,7 @@ import datetime
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
 
-from conftest import REPORTS_DIR, create_user_with_profile, seed_meals
+from conftest import REPORTS_DIR, create_user_with_profile, restart_app, seed_meals
 from test_auth import by_id, go_to_login, type_into
 from test_onboarding import by_text, sign_out_from_tabs, wait_until
 
@@ -67,8 +67,7 @@ def open_today(driver):
 
 
 def restart(driver, config):
-    driver.terminate_app(config["appPackage"])
-    driver.activate_app(config["appPackage"])
+    restart_app(driver, config["appPackage"])
     assert by_id(driver, "screen-today").is_displayed()
 
 

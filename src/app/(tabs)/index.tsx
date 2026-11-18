@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 
-import type { Day } from "@/domain/day";
+import { type Day, parseRequestedDay } from "@/domain/day";
 import { useTargets } from "@/features/goals/goals";
 import { MealSheet, type SheetTarget } from "@/features/meals/meal-sheet";
 import {
@@ -17,6 +18,25 @@ export default function TodayScreen() {
   // null = follow today, so viewing "today" stays on today after midnight.
   const [picked, setPicked] = useState<Day | null>(null);
   const day = picked ?? today;
+
+  // "Mở ngày này" on Biểu đồ (CHART-07): ?day=YYYY-MM-DD&at=<time>; `at` is new on every
+  // request, so the same day can be opened again. Applied once per request, during render.
+  const { day: requested, at } = useLocalSearchParams<{
+    day?: string;
+    at?: string;
+  }>();
+  const request = requested && at ? `${requested}@${at}` : undefined;
+  const [handled, setHandled] = useState<string | undefined>(undefined);
+  if (request !== handled) {
+    setHandled(request);
+    const asked = parseRequestedDay(requested, today);
+    if (asked) setPicked(asked === today ? null : asked);
+  }
+  // Drop the params once applied, so a remount of this tab does not apply an old request again.
+  const router = useRouter();
+  useEffect(() => {
+    if (request) router.setParams({ day: undefined, at: undefined });
+  }, [request, router]);
   const meals = useMealsForDay(day);
   const targets = useTargets();
   const [sheet, setSheet] = useState<SheetTarget | null>(null);

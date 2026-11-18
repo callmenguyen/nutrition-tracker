@@ -124,6 +124,17 @@ def mock_backend():
         )
 
 
+def restart_app(driver, package: str) -> None:
+    """Close and reopen the app, then wait for its first screen (testID screen-*). A cold start
+    downloads the JS bundle from Metro again (over Wi-Fi when adb is wireless), which can take
+    longer than the 10 s implicit wait, especially since Skia and victory-native joined (#19)."""
+    driver.terminate_app(package)
+    driver.activate_app(package)
+    WebDriverWait(driver, STARTUP_TIMEOUT, poll_frequency=1).until(
+        lambda d: d.find_elements(AppiumBy.XPATH, '//*[starts-with(@resource-id, "screen-")]')
+    )
+
+
 @pytest.fixture(scope="session")
 def driver(config: dict):
     apk = Path(config["apkPath"])
@@ -134,6 +145,9 @@ def driver(config: dict):
     options.udid = config["udid"]
     options.app = str(apk)
     options.app_package = config["appPackage"]
+    # Always reinstall: every debug build is versionName 0.0.0, so Appium would otherwise keep an
+    # older APK whose native modules (e.g. Skia, #19) no longer match the JS from Metro.
+    options.enforce_app_install = True
     options.auto_grant_permissions = False  # permission dialogs are part of the flows under test
     options.new_command_timeout = 120
 

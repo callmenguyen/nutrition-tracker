@@ -110,5 +110,6 @@ const styles = StyleSheet.create({
     paddingVertical: space.s,
     justifyContent: "center",
   },
-  optionRow: { flex: 1, alignItems: "center" },
+  // Narrow side padding so short labels fit one row on narrow phones (e.g. four metric chips).
+  optionRow: { flex: 1, alignItems: "center", paddingHorizontal: space.xs },
 });

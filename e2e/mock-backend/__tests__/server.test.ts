@@ -705,3 +705,83 @@ describe("Cài đặt › Món đã lưu: foods read and delete (#18)", () => {
     expect((await listFoods(a.client)).data).toHaveLength(1);
   });
 });
+
+describe("daily_totals for Biểu đồ (#19)", () => {
+  const day = (n: number) =>
+    new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+  const log = (
+    client: SupabaseClient,
+    eatenOn: string,
+    kcal: number,
+    protein: number,
+  ) =>
+    client.rpc("log_meal", {
+      p_id: crypto.randomUUID(),
+      p_eaten_on: eatenOn,
+      p_name: `Món ${kcal}`,
+      p_calories_kcal: kcal,
+      p_protein_g: protein,
+      p_sodium_mg: 100,
+      p_sugar_g: 0.1,
+    });
+
+  it("CHART-02/03: one summed row per day with meals, oldest first", async () => {
+    const { client } = await signedIn("a@example.com");
+    await log(client, day(1), 450, 25);
+    await log(client, day(1), 250, 3.5);
+    await log(client, day(3), 400, 20);
+    await log(client, day(40), 600, 15);
+    const { data, error } = await client.rpc("daily_totals", {
+      p_from: day(6),
+      p_to: day(0),
+    });
+    expect(error).toBeNull();
+    expect(data).toEqual([
+      {
+        eaten_on: day(3),
+        calories_kcal: 400,
+        protein_g: 20,
+        sodium_mg: 100,
+        sugar_g: 0.1,
+      },
+      {
+        eaten_on: day(1),
+        calories_kcal: 700,
+        protein_g: 28.5,
+        sodium_mg: 200,
+        sugar_g: 0.2,
+      },
+    ]);
+  });
+
+  it("CHART-12: B only gets B's totals", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    await log(a.client, day(1), 450, 25);
+    await log(b.client, day(1), 350, 12);
+    const { data } = await b.client.rpc("daily_totals", {
+      p_from: day(6),
+      p_to: day(0),
+    });
+    expect(data).toMatchObject([{ calories_kcal: 350 }]);
+  });
+
+  it("refuses a range longer than 31 days or reversed, like the SQL function", async () => {
+    const { client } = await signedIn("a@example.com");
+    const tooLong = await client.rpc("daily_totals", {
+      p_from: day(31),
+      p_to: day(0),
+    });
+    expect(tooLong.error?.code).toBe("22023");
+    const reversed = await client.rpc("daily_totals", {
+      p_from: day(0),
+      p_to: day(1),
+    });
+    expect(reversed.error?.code).toBe("22023");
+    const longest = await client.rpc("daily_totals", {
+      p_from: day(30),
+      p_to: day(0),
+    });
+    expect(longest.error).toBeNull();
+  });
+});

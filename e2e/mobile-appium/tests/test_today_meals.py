@@ -12,7 +12,7 @@ import time
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
 
-from conftest import REPORTS_DIR, create_user_with_profile, fault, saved_foods
+from conftest import REPORTS_DIR, create_user_with_profile, fault, restart_app, saved_foods
 from test_auth import by_id, go_to_login, type_into
 from test_onboarding import absent, by_text, present, sign_out_from_tabs, wait_until
 
@@ -259,8 +259,7 @@ def test_order_kept_after_restart_and_edit(driver, config):
         save(driver)
     wait_until(driver, lambda d: meal_names(d) == ["Món A", "Món B", "Món C"], timeout=10)
 
-    driver.terminate_app(config["appPackage"])
-    driver.activate_app(config["appPackage"])
+    restart_app(driver, config["appPackage"])
     go_to_day(driver, 3)
     wait_until(driver, lambda d: meal_names(d) == ["Món A", "Món B", "Món C"], timeout=10)
 

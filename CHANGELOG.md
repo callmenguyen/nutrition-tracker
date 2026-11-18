@@ -7,6 +7,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 ## [Unreleased]
 
 ### Thêm
+- Tab Biểu đồ: tổng calo, đạm, natri, đường theo ngày trong 7 hoặc 30 ngày, dạng cột hoặc đường; ngày chưa ghi để trống (không vẽ 0); các đường ngưỡng nét đứt theo mục tiêu hiện tại; chạm một ngày để xem thẻ chi tiết và "Mở ngày này" trên tab Hôm nay; chế độ bảng cho trình đọc màn hình; lựa chọn được nhớ trên máy; số liệu tự cập nhật sau khi ghi món ([#19](https://github.com/callmenguyen/nutrition-tracker/issues/19)).
 - Cài đặt › Món đã lưu: danh sách món đã lưu theo A→Z, ô tìm kiếm không phân biệt dấu; bấm giữ một món để xoá (có xác nhận). Món đã xoá không còn trong gợi ý, các món đã ghi trước đó không đổi ([#18](https://github.com/callmenguyen/nutrition-tracker/issues/18)).
 - Ghi món: nút "+" và "Thêm món" mở bottom sheet nhập tên, calo, đạm, natri, đường và ngày; gõ tên thì gợi ý tối đa 5 món đã lưu (không phân biệt dấu), chọn gợi ý thì tự điền dinh dưỡng; chạm vào món để sửa hoặc xoá (có xác nhận); báo lỗi đúng trường; mất mạng thì giữ nguyên dữ liệu đã nhập, bấm Lưu lại không ghi trùng ([#17](https://github.com/callmenguyen/nutrition-tracker/issues/17)).
 - Tab Hôm nay: thanh chọn ngày (‹ ›, lịch Material 3 khoá ngày tương lai, chip "Hôm nay"), khối Calo với vạch dung lượng và dòng "Còn / Vượt X kcal", ba hàng đạm, natri, đường, danh sách món theo thứ tự đã ghi; vượt ngưỡng trên thì đổi màu, có "!" trong lề và chữ "Vượt ngưỡng"; trạng thái trống, đang tải, lỗi kèm "Thử lại" ([#16](https://github.com/callmenguyen/nutrition-tracker/issues/16)).
@@ -23,5 +24,9 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 ### Bảo trì
 - E2E chạy trên mock backend Node.js trong bộ nhớ (`e2e/mock-backend/`) thay cho Supabase cloud: mỗi lượt bắt đầu với dữ liệu sạch và tài khoản test mới, email xác nhận và đặt lại mật khẩu được kiểm qua hộp thư giả; mock có test Jest dùng `supabase-js` thật (ADR-016, [#50](https://github.com/callmenguyen/nutrition-tracker/issues/50)).
 - Khung repo: Expo SDK 58 (TypeScript, Expo Router, 3 tab Hôm nay · Biểu đồ · Cài đặt chưa có tính năng), Supabase local với test RLS, Jest, ESLint/Prettier, E2E Appium (Python/uv) cùng các script build APK, Metro và chạy test, CI, Dependabot.
+
+### Ghi chú nâng cấp
+- Migration mới `20261118204252_daily_totals.sql` (hàm `daily_totals`) cần áp dụng lên Supabase cloud trước khi phát hành bản có tab Biểu đồ.
+- Thêm phụ thuộc native `@shopify/react-native-skia` và `victory-native`: cần build lại APK.
 
 [Unreleased]: https://github.com/callmenguyen/nutrition-tracker/commits/main

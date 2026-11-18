@@ -101,7 +101,9 @@ npx expo install <pkg>   # luôn dùng thay cho npm install để có phiên b�
   - server chặn ngày tương lai với dung sai +1 ngày (ADR-005);
   - biểu đồ để trống, không vẽ 0, cho ngày chưa ghi.
 - Supabase CLI chạy qua `npx supabase` (devDependency), không cài global.
-- Build Android thường cần JDK 17; máy dev có thể đang dùng JDK khác.
+- Build Android thường cần JDK 17; máy dev có thể đang dùng JDK khác (APK của #19 build được với JDK 21 qua `JAVA_HOME` chỉ cho lệnh đó).
+- **E2E sau khi đổi code:** Metro chạy từ repo trên ổ ngoài (`/Volumes/...`) có thể không nhận thay đổi file; khởi động lại `run-metro.sh --clear` trước khi chạy lại E2E. Mọi bản debug đều là versionName 0.0.0, nên `conftest.py` bật `enforceAppInstall` để Appium luôn cài lại APK (cần sau khi thêm module native).
+- Chữ vẽ bằng Skia (`matchFont`) có thể thiếu glyph tiếng Việt ("ư", "ụ") trên một số máy: chữ tiếng Việt trên biểu đồ dùng Text của RN đặt chồng lên canvas.
 - Icon tab dùng Material Symbols qua `NativeTabs.Trigger.Icon md=…` (iOS: `sf=…`); tên symbol phải có trong `expo-symbols/build/android/symbols.json`.
 
 ## Phiên bản và phát hành
