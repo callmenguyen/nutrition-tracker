@@ -110,5 +110,6 @@ const styles = StyleSheet.create({
     paddingVertical: space.s,
     justifyContent: "center",
   },
-  optionRow: { flex: 1, alignItems: "center" },
+  // Narrow side padding so four short labels ("Natri", "Đường") fit one row without wrapping.
+  optionRow: { flex: 1, alignItems: "center", paddingHorizontal: space.xs },
 });

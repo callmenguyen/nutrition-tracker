@@ -177,6 +177,8 @@ describe("ChartView (tab Biểu đồ)", () => {
       "12/11/2026",
     );
     expect(screen.getByTestId("chart-detail-none")).toBeTruthy();
+    // One card, under the chosen row (not up by the chart, off screen from a long table).
+    expect(screen.getAllByTestId("chart-detail")).toHaveLength(1);
   });
 
   it("CHART-13: the error state has 'Thử lại' and no chart", async () => {

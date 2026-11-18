@@ -67,7 +67,7 @@ export function ChartView({
   return (
     <ThemedView style={styles.flex} testID="screen-chart">
       <SafeAreaView edges={["top"]} style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.scroll} testID="chart-scroll">
+        <ScrollView contentContainerStyle={styles.scroll}>
           <NotebookPage style={styles.page}>
             <MarginRow>
               <ThemedText variant="headline" accessibilityRole="header">
@@ -174,12 +174,15 @@ function ChartContent({
         />
         <Legend metric={metric} thresholds={thresholds} />
       </MarginRow>
-      {selectedDay ? (
-        <DayCard
-          day={selectedDay}
-          totals={totalsOn(totals, selectedDay)}
-          onOpenDay={onOpenDay}
-        />
+      {/* With the table open, the card sits under the chosen row instead (seen where it was tapped). */}
+      {selectedDay && !showTable ? (
+        <MarginRow style={styles.block}>
+          <DayCard
+            day={selectedDay}
+            totals={totalsOn(totals, selectedDay)}
+            onOpenDay={onOpenDay}
+          />
+        </MarginRow>
       ) : null}
       <MarginRow style={styles.block}>
         <View style={styles.textButton}>
@@ -196,14 +199,24 @@ function ChartContent({
               const text =
                 p.value === null ? "Chưa ghi" : formatValue(metric, p.value);
               return (
-                <TableRow
-                  key={p.day}
-                  label={p.label}
-                  text={text}
-                  selected={p.day === selectedDay}
-                  onPress={() => setSelected(p.day)}
-                  testID={`chart-row-${i}`}
-                />
+                <View key={p.day}>
+                  <TableRow
+                    label={p.label}
+                    text={text}
+                    selected={p.day === selectedDay}
+                    onPress={() => setSelected(p.day)}
+                    testID={`chart-row-${i}`}
+                  />
+                  {p.day === selectedDay ? (
+                    <View style={styles.inlineCard}>
+                      <DayCard
+                        day={p.day}
+                        totals={totalsOn(totals, p.day)}
+                        onOpenDay={onOpenDay}
+                      />
+                    </View>
+                  ) : null}
+                </View>
               );
             })}
           </View>
@@ -281,44 +294,42 @@ function DayCard({
 }) {
   const { colors } = useTheme();
   return (
-    <MarginRow style={styles.block}>
-      <View
-        style={[styles.card, { backgroundColor: colors.surfaceContainer }]}
-        testID="chart-detail"
-      >
-        <ThemedText variant="titleMedium" testID="chart-detail-day">
-          {formatDayVi(day)}
-        </ThemedText>
-        {totals ? (
-          METRIC_ORDER.map((m) => (
-            <ThemedText
-              key={m}
-              variant="body"
-              numeric
-              testID={`chart-detail-${m}`}
-            >
-              {`${METRICS[m].label} ${formatValue(m, totals[m])}`}
-            </ThemedText>
-          ))
-        ) : (
+    <View
+      style={[styles.card, { backgroundColor: colors.surfaceContainer }]}
+      testID="chart-detail"
+    >
+      <ThemedText variant="titleMedium" testID="chart-detail-day">
+        {formatDayVi(day)}
+      </ThemedText>
+      {totals ? (
+        METRIC_ORDER.map((m) => (
           <ThemedText
+            key={m}
             variant="body"
-            color="onSurfaceVariant"
-            testID="chart-detail-none"
+            numeric
+            testID={`chart-detail-${m}`}
           >
-            Chưa ghi
+            {`${METRICS[m].label} ${formatValue(m, totals[m])}`}
           </ThemedText>
-        )}
-        <View style={styles.textButton}>
-          <Button
-            label="Mở ngày này"
-            variant="text"
-            onPress={() => onOpenDay(day)}
-            testID="chart-open-day"
-          />
-        </View>
+        ))
+      ) : (
+        <ThemedText
+          variant="body"
+          color="onSurfaceVariant"
+          testID="chart-detail-none"
+        >
+          Chưa ghi
+        </ThemedText>
+      )}
+      <View style={styles.textButton}>
+        <Button
+          label="Mở ngày này"
+          variant="text"
+          onPress={() => onOpenDay(day)}
+          testID="chart-open-day"
+        />
       </View>
-    </MarginRow>
+    </View>
   );
 }
 
@@ -411,6 +422,7 @@ const styles = StyleSheet.create({
   dashed: { borderStyle: "dashed" },
   dotted: { borderStyle: "dotted" },
   card: { borderRadius: 12, padding: space.m, gap: space.xs },
+  inlineCard: { marginVertical: space.s },
   row: {
     minHeight: layout.touchTarget,
     flexDirection: "row",

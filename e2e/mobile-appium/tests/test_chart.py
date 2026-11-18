@@ -94,11 +94,28 @@ def checked(driver, test_id: str) -> bool:
 
 
 def scroll_to_top(driver):
-    """Back to the pickers: a scroll left at the end of the 30-day table hides everything above it."""
-    driver.find_elements(
-        AppiumBy.ANDROID_UIAUTOMATOR,
-        'new UiScrollable(new UiSelector().resourceId("chart-scroll")).scrollToBeginning(10)',
-    )
+    """Back to the pickers: a scroll left at the end of the 30-day table hides everything above it.
+    Swipes the page down (content up) until the table toggle is on screen; UiScrollable's
+    scrollToBeginning did not move this React Native ScrollView."""
+    driver.implicitly_wait(0)
+    try:
+        for _ in range(10):
+            if driver.find_elements(AppiumBy.ID, "chart-table-toggle"):
+                return
+            r = driver.find_element(AppiumBy.ID, "screen-chart").rect
+            driver.execute_script(
+                "mobile: scrollGesture",
+                {
+                    "left": r["x"] + 20,
+                    "top": r["y"] + 200,
+                    "width": r["width"] - 40,
+                    "height": r["height"] - 400,
+                    "direction": "up",
+                    "percent": 1.0,
+                },
+            )
+    finally:
+        driver.implicitly_wait(10)
 
 
 def show_table(driver):
@@ -151,9 +168,10 @@ def test_choices_remembered_after_restart(driver, config):
     assert checked(driver, "chart-kind-line")
     show_table(driver)
     # 30 days end on today: 5 days ago is row 24, 3 days ago row 26, today row 29.
+    # Read top to bottom: by_id scrolls down to a row but not back up.
+    assert row_value(driver, 0) == "Chưa ghi"
     assert row_value(driver, 24) == "1.500 kcal"
     assert row_value(driver, 29) == "450 kcal"
-    assert row_value(driver, 0) == "Chưa ghi"
 
 
 def test_open_day_then_new_meal_updates_chart(driver):

@@ -1,16 +1,15 @@
 import {
   Circle,
   DashPathEffect,
-  Group,
   Line as SkiaLine,
   matchFont,
-  Text as SkiaText,
   vec,
 } from "@shopify/react-native-skia";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
-import { Bar, CartesianChart, Line } from "victory-native";
+import { Bar, CartesianChart, type ChartBounds, Line } from "victory-native";
 
+import { ThemedText } from "@/components/themed-text";
 import {
   type ChartKind,
   type SeriesPoint,
@@ -35,8 +34,19 @@ export type ChartCanvasProps = {
   accessibilityLabel: string;
 };
 
+type Frame = {
+  width: number;
+  bounds: ChartBounds | null;
+  yScale: ((v: number) => number) | null;
+};
+
 const HEIGHT = 240;
-const LABEL_SIZE = 12;
+/** Axis labels: digits and dd/MM only, so Skia's system font always has the glyphs. */
+const AXIS_LABEL_SIZE = 12;
+/** Threshold labels may grow with the system font size up to this factor (they share the canvas). */
+const LABEL_MAX_SCALE = 1.3;
+/** Room for one threshold label: labelSmall line height (16) at the largest scale, plus a gap. */
+const LABEL_LINE = Math.ceil(16 * LABEL_MAX_SCALE) + 2;
 /** Dash patterns keep grey lines apart without colour (DESIGN.md, The Never Colour Alone Rule). */
 const DASHES: Record<ThresholdKind, number[]> = {
   upper: [10, 3],
@@ -69,7 +79,7 @@ export function ChartCanvas({
           ios: "Helvetica",
           default: "sans-serif",
         }),
-        fontSize: LABEL_SIZE,
+        fontSize: AXIS_LABEL_SIZE,
       }),
     [],
   );
@@ -78,6 +88,13 @@ export function ChartCanvas({
     [series],
   );
   const xScaleRef = useRef<((x: number) => number) | null>(null);
+  // Threshold labels are React Native text over the canvas: Skia's matchFont has no fallback for
+  // Vietnamese letters such as "ư" or "ụ" on some devices, while RN text always renders them.
+  const [frame, setFrame] = useState<Frame>({
+    width: 0,
+    bounds: null,
+    yScale: null,
+  });
   const lineColor: Record<ThresholdKind, string> = {
     upper: colors.error,
     target: colors.goal,
@@ -97,6 +114,10 @@ export function ChartCanvas({
       accessibilityLabel={accessibilityLabel}
       style={styles.box}
       testID="chart-canvas"
+      onLayout={(e) => {
+        const width = e.nativeEvent.layout.width;
+        setFrame((f) => (f.width === width ? f : { ...f, width }));
+      }}
     >
       <Pressable
         importantForAccessibility="no-hide-descendants"
@@ -118,9 +139,13 @@ export function ChartCanvas({
             domain={{ y: domain }}
             domainPadding={{ left: 16, right: 16 }}
             padding={{ right: 4 }}
-            onScaleChange={(xScale) => {
+            onScaleChange={(xScale, yScale) => {
               xScaleRef.current = (x) => xScale.invert(x);
+              setFrame((f) => ({ ...f, yScale: (v) => yScale(v) }));
             }}
+            onChartBoundsChange={(bounds) =>
+              setFrame((f) => ({ ...f, bounds }))
+            }
             xAxis={{
               font,
               labelColor: colors.onSurfaceVariant,
@@ -180,42 +205,72 @@ export function ChartCanvas({
                     )}
                   </>
                 )}
-                {(() => {
-                  const labelYs = spreadLabelPositions(
-                    thresholds.map((l) => yScale(l.value)),
-                    LABEL_SIZE + 2,
-                    4,
-                    chartBounds.bottom - 2,
+                {thresholds.map((l) => {
+                  const y = yScale(l.value);
+                  return (
+                    <SkiaLine
+                      key={l.kind}
+                      p1={vec(chartBounds.left, y)}
+                      p2={vec(chartBounds.right, y)}
+                      color={lineColor[l.kind]}
+                      strokeWidth={1.5}
+                    >
+                      <DashPathEffect intervals={DASHES[l.kind]} />
+                    </SkiaLine>
                   );
-                  return thresholds.map((l, i) => {
-                    const y = yScale(l.value);
-                    const width = font.measureText(l.label).width;
-                    return (
-                      <Group key={l.kind}>
-                        <SkiaLine
-                          p1={vec(chartBounds.left, y)}
-                          p2={vec(chartBounds.right, y)}
-                          color={lineColor[l.kind]}
-                          strokeWidth={1.5}
-                        >
-                          <DashPathEffect intervals={DASHES[l.kind]} />
-                        </SkiaLine>
-                        <SkiaText
-                          x={chartBounds.right - width - 2}
-                          y={labelYs[i]}
-                          text={l.label}
-                          font={font}
-                          color={lineColor[l.kind]}
-                        />
-                      </Group>
-                    );
-                  });
-                })()}
+                })}
               </>
             )}
           </CartesianChart>
         </View>
+        <ThresholdLabels
+          thresholds={thresholds}
+          colorOf={(k) => lineColor[k]}
+          frame={frame}
+        />
       </Pressable>
+    </View>
+  );
+}
+
+/** Labels on the right edge, just above their lines, spread apart and kept above the X axis. */
+function ThresholdLabels({
+  thresholds,
+  colorOf,
+  frame,
+}: {
+  thresholds: Threshold[];
+  colorOf: (kind: ThresholdKind) => string;
+  frame: Frame;
+}) {
+  const { width, bounds, yScale } = frame;
+  if (!bounds || !yScale || width === 0) return null;
+  const tops = spreadLabelPositions(
+    thresholds.map((l) => yScale(l.value)),
+    LABEL_LINE,
+    LABEL_LINE + 2,
+    bounds.bottom - LABEL_LINE,
+  );
+  return (
+    <View
+      pointerEvents="none"
+      importantForAccessibility="no-hide-descendants"
+      style={StyleSheet.absoluteFill}
+    >
+      {thresholds.map((l, i) => (
+        <ThemedText
+          key={l.kind}
+          variant="labelSmall"
+          tint={colorOf(l.kind)}
+          maxFontSizeMultiplier={LABEL_MAX_SCALE}
+          style={[
+            styles.label,
+            { top: tops[i], right: width - bounds.right + 2 },
+          ]}
+        >
+          {l.label}
+        </ThemedText>
+      ))}
     </View>
   );
 }
@@ -223,4 +278,5 @@ export function ChartCanvas({
 const styles = StyleSheet.create({
   box: { height: HEIGHT },
   fill: { flex: 1 },
+  label: { position: "absolute" },
 });

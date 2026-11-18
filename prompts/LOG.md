@@ -303,4 +303,6 @@ Mẫu một mục:
   - Chế độ bảng (CHART-14) cũng là đường kiểm E2E vì Appium không đọc được canvas Skia; chạm dòng để chọn ngày.
   - Lỗi tải hiện lỗi + Thử lại và ẩn biểu đồ kể cả khi còn dữ liệu cũ (CHART-13).
   - "Mở ngày này": điều hướng tới Hôm nay với `?day=&at=`; Hôm nay áp dụng mỗi yêu cầu một lần.
+  - Chạy trên máy thật lộ ra: nhãn ngưỡng vẽ bằng Skia mất dấu tiếng Việt → chuyển sang Text RN chồng lên canvas; chip "Natri"/"Đường" bị xuống dòng → giảm padding ngang của `ChoiceGroup` hàng ngang; chọn dòng trong bảng thì thẻ chi tiết hiện ngay dưới dòng đó.
+  - Hạ tầng E2E: Appium không cài lại APK cùng versionName → `enforceAppInstall`; Metro trên ổ ngoài không nhận thay đổi → khởi động lại với `--clear` (ghi vào CLAUDE.md).
 - **Kết quả:** PR `feat/19-chart`.
