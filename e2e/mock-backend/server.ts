@@ -543,7 +543,7 @@ export function createMockBackend(): { server: Server } {
     return notMocked(req, res, url.pathname);
   }
 
-  /** The two SQL functions the app calls (supabase/migrations/…_meal_entries_foods.sql). */
+  /** The SQL functions the app calls (supabase/migrations/…_meal_entries_foods.sql, …_daily_totals.sql). */
   function rpc(
     req: IncomingMessage,
     res: ServerResponse,
@@ -666,6 +666,54 @@ export function createMockBackend(): { server: Server } {
         })
         .slice(0, 5);
       return send(res, 200, matches);
+    }
+
+    if (name === "daily_totals") {
+      // supabase/migrations/…_daily_totals.sql: per-day sums of the caller's meals, 1–31 days.
+      const from = str(p.p_from);
+      const to = str(p.p_to);
+      const dayNumber = (d: string) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(d)
+          ? Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) /
+            86400000
+          : NaN;
+      const span = dayNumber(to) - dayNumber(from);
+      if (!(span >= 0 && span <= 30)) {
+        return send(res, 400, {
+          code: "22023",
+          message: "daily_totals: range must be 1 to 31 days",
+        });
+      }
+      const byDay = new Map<string, Row>();
+      for (const m of state.mealEntries) {
+        const day = String(m.eaten_on);
+        if (m.user_id !== userId || day < from || day > to) continue;
+        const t = byDay.get(day) ?? {
+          eaten_on: day,
+          calories_kcal: 0,
+          protein_g: 0,
+          sodium_mg: 0,
+          sugar_g: 0,
+        };
+        for (const k of [
+          "calories_kcal",
+          "protein_g",
+          "sodium_mg",
+          "sugar_g",
+        ]) {
+          t[k] = (t[k] as number) + Number(m[k]);
+        }
+        byDay.set(day, t);
+      }
+      // numeric sums: one decimal, as numeric(4,1) inputs give in Postgres.
+      const rows = [...byDay.values()]
+        .map((t): Row => ({
+          ...t,
+          protein_g: Math.round((t.protein_g as number) * 10) / 10,
+          sugar_g: Math.round((t.sugar_g as number) * 10) / 10,
+        }))
+        .sort((a, b) => (String(a.eaten_on) < String(b.eaten_on) ? -1 : 1));
+      return send(res, 200, rows);
     }
 
     return notMocked(req, res, `rpc/${name}`);

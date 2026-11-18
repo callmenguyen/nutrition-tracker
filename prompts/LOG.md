@@ -293,3 +293,14 @@ Mẫu một mục:
   - `test_delete_saved_food_keeps_logged_meals` lỗi vì bấm giữ mặc định của Appium (~500 ms) trùng ngưỡng `delayLongPress` 500 ms của RN Pressable: test giữ 1,5 giây; không nới điều kiện kiểm tra.
   - Kết quả: 20/21 ở lượt đủ (chỉ test trên lỗi), sau khi sửa `tests/test_today_meals.py` 8/8 đạt.
 - **Kết quả:** PR `fix/18-e2e-long-press` (Closes #18).
+
+## 2026-11-19 · `/kessie-skills:proj build #19` — Tab Biểu đồ
+- **Yêu cầu:** Làm issue #19: RPC tổng hợp theo ngày và tab Biểu đồ (CHART-01–08, 12–14).
+- **Quyết định:**
+  - `victory-native` ghim **42.0.1**: bản 43.x đòi Skia ≥ 2.15, còn Expo SDK 58 đi kèm `@shopify/react-native-skia` 2.14.0 (ADR-009 đã chấp nhận thêm Skia nên không cần ADR mới). Phụ thuộc native: phải build lại APK.
+  - RPC `daily_totals(p_from, p_to)` (security invoker, RLS của `meal_entries`; 1–31 ngày), tải 30 ngày một lần, 7 ngày lọc ở client.
+  - Màu đường mục tiêu: token mới `goal` (xanh ngả vàng, tách khỏi màu đạm); ngưỡng trên `error`; dưới / BMR / an toàn `outline` với các kiểu nét khác nhau. Ghi vào DESIGN.md.
+  - Chế độ bảng (CHART-14) cũng là đường kiểm E2E vì Appium không đọc được canvas Skia; chạm dòng để chọn ngày.
+  - Lỗi tải hiện lỗi + Thử lại và ẩn biểu đồ kể cả khi còn dữ liệu cũ (CHART-13).
+  - "Mở ngày này": điều hướng tới Hôm nay với `?day=&at=`; Hôm nay áp dụng mỗi yêu cầu một lần.
+- **Kết quả:** PR `feat/19-chart`.

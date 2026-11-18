@@ -19,6 +19,7 @@ colors:
   nutrient-protein: "#2E6E50"
   nutrient-sodium: "#8A5A00"
   nutrient-sugar: "#8E2F6E"
+  goal-green: "#3D6B00"
   lamp-paper: "#17141F"
   lamp-paper-tint: "#262132"
   lamp-ink: "#ECE8F6"
@@ -36,6 +37,7 @@ colors:
   lamp-nutrient-protein: "#86D4AE"
   lamp-nutrient-sodium: "#E9C16B"
   lamp-nutrient-sugar: "#F2A7D6"
+  lamp-goal-green: "#B5DC7A"
 typography:
   display:
     fontFamily: "Roboto, sans-serif"
@@ -181,6 +183,7 @@ Bảng màu giấy và mực: nền gần trắng, một màu mực tím chủ �
 - **Đỏ lỗi (Error Red)** (`error-red`): giá trị và vạch của chất vượt ngưỡng trên, dấu "!" trong cột lề, dòng "Vượt ngưỡng X", viền và chữ lỗi của ô nhập, lỗi lưu dưới form.
 - **Đỏ lề (Margin Red)** (`margin-red`): chỉ dùng cho đường lề dọc mảnh (2 hairline, độ mờ 45 %) của trang vở. Đây là trang trí, không mang nghĩa.
 - **Hổ phách (Warning Amber)** (`warning-amber`): cảnh báo không chặn khi thiết lập mục tiêu, luôn đi kèm icon tam giác.
+- **Xanh mục tiêu (Goal Green)** (`goal-green`): chỉ dùng cho đường mục tiêu nét đứt trên Biểu đồ và nhãn của nó. Xanh ngả vàng, tách khỏi `nutrient-protein` (xanh ngả lam). Bản tối `lamp-goal-green`.
 
 ### Neutral
 - **Giấy (Paper)** (`paper`): nền trang và nền sheet, nền ô nhập.
@@ -197,7 +200,7 @@ Bảng màu giấy và mực: nền gần trắng, một màu mực tím chủ �
 
 **The Never Colour Alone Rule.** Vượt ngưỡng luôn là ba kênh cùng lúc: số và vạch đỏ, dấu "!" trong cột lề (có nhãn đọc "Vượt ngưỡng"), và chữ "Vượt ngưỡng X". Cảnh báo hổ phách luôn có icon. Lỗi ô nhập luôn có chữ dưới ô.
 
-**The Contrast Floor Rule.** Mọi vai trò chữ (`ink`, `ink-muted`, `violet-ink`, `error-red`, `warning-amber` và bản tối tương ứng) đạt ít nhất 4.5:1 trên `paper` và `paper-tint`; có test tự động kiểm tra.
+**The Contrast Floor Rule.** Mọi vai trò chữ (`ink`, `ink-muted`, `violet-ink`, `error-red`, `warning-amber`, `goal-green` và bản tối tương ứng) đạt ít nhất 4.5:1 trên `paper` và `paper-tint`; có test tự động kiểm tra.
 
 ## Typography
 
@@ -279,6 +282,9 @@ Dòng nội dung với cột lề 40 dp. Dấu "alert" là vòng tròn 24 dp vi�
 
 ### Meal Row
 - Cao tối thiểu 48 dp, đệm dọc 8 dp, đường kẻ dưới hairline `lavender-rule` chạy hết bề ngang như dòng kẻ vở. Tên món cỡ Body (tối đa 2 dòng) và kcal căn phải; dòng phụ "Đạm X g · Natri Y mg · Đường Z g" cỡ Body Small `ink-muted`. Nhấn: nền `paper-tint`; chạm mở sheet ở chế độ sửa.
+
+### Chart (Biểu đồ)
+Canvas Skia cao 240 dp trong cột nội dung. Series dùng màu của chất (The Fixed Meaning Rule): cột bo 3 dp ở hai góc trên, hoặc đường 2 dp kèm chấm 4 dp ở mỗi ngày có dữ liệu. Ngày chưa ghi không có cột và làm đường bị ngắt, không vẽ 0. Đường ngưỡng ngang nét đứt 1,5 dp, nhãn chữ 12 sp cùng màu ở mép phải: ngưỡng trên `error-red` (nét 6/4), mục tiêu `goal-green` (nét 6/4), ngưỡng dưới và BMR `pencil-outline` chấm (2/4), an toàn `pencil-outline` gạch chấm (10/4/2/4). Trục và nhãn `ink-muted`, đường trục `lavender-rule`. Ngày đang chọn có vạch dọc `lavender-rule`. Chú thích dưới biểu đồ lặp lại các series và ngưỡng kèm giá trị, nên không phải chỉ dựa vào màu. Thẻ chi tiết nền `paper-tint`, bo 12 dp. Chế độ bảng là các dòng 48 dp, ngăn bằng đường kẻ mảnh như dòng món.
 
 ### Warning Note
 - Icon tam giác 18 dp + chữ Body Small, cả hai màu `warning-amber`, ngay dưới ô liên quan; không chặn lưu.

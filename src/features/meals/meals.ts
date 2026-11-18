@@ -129,8 +129,8 @@ export async function deleteSavedFood(id: string): Promise<SaveResult> {
 }
 
 /**
- * After a write: every day's list (a save can move a meal to another day), suggestions and the
- * saved-food list (a save updates its saved food).
+ * After a write: every day's list (a save can move a meal to another day), suggestions, the
+ * saved-food list (a save updates its saved food) and the Biểu đồ totals (CHART-08).
  */
 function useRefreshAfterWrite() {
   const queryClient = useQueryClient();
@@ -142,6 +142,7 @@ function useRefreshAfterWrite() {
       queryClient.invalidateQueries({ queryKey: ["meals", userId] }),
       queryClient.invalidateQueries({ queryKey: ["food-suggestions", userId] }),
       queryClient.invalidateQueries({ queryKey: ["saved-foods", userId] }),
+      queryClient.invalidateQueries({ queryKey: ["daily-totals", userId] }),
     ]);
   };
 }

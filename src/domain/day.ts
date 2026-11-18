@@ -51,3 +51,14 @@ export function toPickerDateIso(day: Day): string {
 export function fromPickerDate(date: Date): Day {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
+
+/** A day asked for from outside (route param): a real "YYYY-MM-DD" not after today, else null. */
+export function parseRequestedDay(
+  text: string | undefined,
+  today: Day,
+): Day | null {
+  if (!text || !/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+  // Round-trip rejects impossible dates such as 2026-02-30.
+  if (addDays(text, 0) !== text) return null;
+  return isAfterDay(text, today) ? null : text;
+}

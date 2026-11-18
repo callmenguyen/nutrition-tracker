@@ -20,7 +20,8 @@ export type ColorRole =
   | "outlineVariant"
   | "error"
   | "warning"
-  | "margin";
+  | "margin"
+  | "goal";
 
 /** Text roles: must stay ≥ 4.5:1 on background and surfaceContainer. */
 export const TEXT_ROLES = [
@@ -29,6 +30,7 @@ export const TEXT_ROLES = [
   "primary",
   "error",
   "warning",
+  "goal",
 ] as const;
 
 export const palettes: Record<Scheme, Record<ColorRole, string>> = {
@@ -48,6 +50,8 @@ export const palettes: Record<Scheme, Record<ColorRole, string>> = {
     // Non-blocking goal warnings W1–W6 (Goals.md §2): amber ink, always with an icon.
     warning: "#7A5200",
     margin: "#D9473F",
+    // Biểu đồ target line and its label (Chart.md §2): a yellow-green, apart from protein's teal.
+    goal: "#3D6B00",
   },
   // The same page under a desk lamp: deep ink ground, light violet ink.
   dark: {
@@ -64,6 +68,7 @@ export const palettes: Record<Scheme, Record<ColorRole, string>> = {
     error: "#FFB4AB",
     warning: "#F2C462",
     margin: "#FF8A80",
+    goal: "#B5DC7A",
   },
 };
 
