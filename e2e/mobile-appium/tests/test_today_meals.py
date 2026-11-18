@@ -292,7 +292,8 @@ def test_delete_asks_and_keeps_saved_food(driver):
 
 
 def long_press(driver, test_id: str):
-    driver.execute_script("mobile: longClickGesture", {"elementId": by_id(driver, test_id).id})
+    """Hold well past RN Pressable's 500 ms delayLongPress: Appium's default hold (~500 ms) races it."""
+    driver.execute_script("mobile: longClickGesture", {"elementId": by_id(driver, test_id).id, "duration": 1500})
 
 
 def test_delete_saved_food_keeps_logged_meals(driver):
