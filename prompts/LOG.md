@@ -336,3 +336,11 @@ Mẫu một mục:
   - E2E TC-E2E-20 (`tests/test_delete_account.py`) đã viết, chưa chạy trên máy.
 - **Kết quả:** PR `feat/21-delete-account`.
 
+## 2026-11-21 · Deploy `delete-account` lên cloud và chạy E2E cho #21
+- **Yêu cầu:** "làm đi" (deploy function); chủ dự án chưa kiểm tay được nhưng cho phép chạy test tự động.
+- **Quyết định:**
+  - Trước khi deploy, kiểm (chỉ đọc tên và loại) project cloud có khoá `default` publishable và secret. Deploy `npx supabase functions deploy delete-account --remote=<ref> --yes`; function `ACTIVE`, `verify_jwt: false`.
+  - Kiểm sau deploy bằng một request không token (không xoá được gì): `401 {"error":"unauthorized"}` từ handler, tức là khoá trên cloud đọc được.
+  - E2E `tests/test_delete_account.py` trên máy thật: 2/2 đạt. Không xoá tài khoản thật nào trên cloud.
+- **Kết quả:** PR `docs/21-e2e-deploy`.
+

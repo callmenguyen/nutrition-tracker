@@ -43,7 +43,7 @@
 
 > **Tình trạng theo issue (#20, 2026-11-21):** TC-E2E-18 chia hai chỗ. REM-01 nằm trong `tests/test_onboarding.py`, ngay sau "Bắt đầu": chọn "Để sau", không có hộp thoại quyền, và Cài đặt hiện "Nhắc nhở, Tắt". REM-04 và REM-07 (phần một máy) nằm trong `tests/test_reminders.py`: từ chối quyền thì công tắc tắt và hiện "Bị chặn" + "Mở cài đặt"; cho phép ở lần hỏi thứ hai, đổi giờ sang 21:00 trên dial Compose, tắt app mở lại thì vẫn bật và vẫn 21:00. REM-11 kiểm bằng component test và test luồng (lưu lỗi thì không gọi lên lịch hay hủy). Thông báo đến, bấm mở app, đổi giờ, tắt, đăng xuất (REM-02, 03, 05, 06, 08) vẫn là TC-DEV-02.
 
-> **Tình trạng theo issue (#21, 2026-11-21):** TC-E2E-20 nằm trong `tests/test_delete_account.py` (Hủy, sai mật khẩu, đúng mật khẩu rồi đăng nhập lại báo sai) nhưng **chưa chạy trên máy**. Phần "fixture kiểm DB bằng service role" là `supabase/functions/delete-account/__tests__/integration.ts`, chạy trên Supabase local trong job CI "Edge Functions": sai mật khẩu hoặc không có phiên thì không mất dòng nào; đúng mật khẩu thì 0 dòng của A ở mọi bảng, A đăng nhập lại báo `invalid_credentials`, dữ liệu của B nguyên vẹn.
+> **Tình trạng theo issue (#21, 2026-11-21):** TC-E2E-20 nằm trong `tests/test_delete_account.py` (Hủy, sai mật khẩu, đúng mật khẩu rồi đăng nhập lại báo sai); chạy trên máy thật ngày 2026-11-21: 2/2 đạt. Phần "fixture kiểm DB bằng service role" là `supabase/functions/delete-account/__tests__/integration.ts`, chạy trên Supabase local trong job CI "Edge Functions": sai mật khẩu hoặc không có phiên thì không mất dòng nào; đúng mật khẩu thì 0 dòng của A ở mọi bảng, A đăng nhập lại báo `invalid_credentials`, dữ liệu của B nguyên vẹn.
 
 ### 0.2.0 (Workout)
 | Mã | AC | Tiền điều kiện | Bước chính | Kết quả mong đợi |
