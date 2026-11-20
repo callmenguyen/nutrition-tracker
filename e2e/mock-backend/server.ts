@@ -26,6 +26,23 @@ const TABLES = new Set(["profiles", "goals", "user_settings"]);
 /** Many rows per user: read, delete, and written only through rpc/log_meal (like the app). */
 const MANY_ROW_TABLES = new Set(["meal_entries", "foods"]);
 
+/** Column defaults of user_settings (…_profiles_goals_user_settings.sql), applied on insert. */
+const USER_SETTINGS_DEFAULTS: Row = {
+  log_reminder_enabled: false,
+  log_reminder_time: "20:00:00",
+  workout_enabled: false,
+  workout_digest_time: "06:00:00",
+};
+const SETTINGS_TIMES = ["log_reminder_time", "workout_digest_time"];
+
+/** Postgres `time` as PostgREST returns it ("21:05:00"); null when the check constraint fails. */
+function settingsTime(value: unknown): string | null {
+  const m = /^(\d{2}):(\d{2})(?::00)?$/.exec(String(value));
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59 || Number(m[2]) % 5 !== 0)
+    return null;
+  return `${m[1]}:${m[2]}:00`;
+}
+
 type User = {
   id: string;
   email: string;
@@ -512,7 +529,26 @@ export function createMockBackend(): { server: Server } {
             message: `duplicate key value violates unique constraint "${table}_pkey"`,
           });
         }
-        const next = { ...existing, ...row, user_id: userId };
+        const next: Row = {
+          ...(table === "user_settings" && !existing
+            ? USER_SETTINGS_DEFAULTS
+            : {}),
+          ...existing,
+          ...row,
+          user_id: userId,
+        };
+        if (table === "user_settings") {
+          for (const col of SETTINGS_TIMES) {
+            const time = settingsTime(next[col]);
+            if (!time) {
+              return send(res, 400, {
+                code: "23514",
+                message: `new row for relation "user_settings" violates check constraint "user_settings_${col}_check"`,
+              });
+            }
+            next[col] = time;
+          }
+        }
         rows.set(userId, next);
         saved.push(next);
       }

@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 
+import { cancelLogReminder } from "@/features/reminders/scheduler";
 import { supabase } from "@/lib/supabase";
 
 type AuthState = {
@@ -42,7 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       // Cached queries belong to the previous user; never show them to the next one.
-      if (event === "SIGNED_OUT") queryClient.clear();
+      if (event === "SIGNED_OUT") {
+        queryClient.clear();
+        // Reminders belong to the account: this device stops reminding (Reminders.md §3.5, REM-08).
+        cancelLogReminder().catch((e: unknown) => {
+          console.warn("Could not cancel the log reminder", e);
+        });
+      }
       setState((s) => ({
         session,
         initializing: false,

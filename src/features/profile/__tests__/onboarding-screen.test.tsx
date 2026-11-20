@@ -5,10 +5,20 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
+import { Alert, type AlertButton } from "react-native";
 
 import OnboardingScreen from "@/app/onboarding";
 
-const mockMutateAsync = jest.fn<(profile: unknown) => Promise<{ ok: true }>>();
+const mockMutateAsync =
+  jest.fn<
+    (
+      profile: unknown,
+    ) => Promise<
+      { ok: true } | { ok: false; failure: { field: "form"; message: string } }
+    >
+  >();
+const mockTurnOn =
+  jest.fn<(time: unknown) => Promise<{ kind: "on" | "blocked" }>>();
 
 jest.mock("expo-router", () => ({ useFocusEffect: () => undefined }));
 jest.mock("react-native-safe-area-context", () => {
@@ -18,6 +28,9 @@ jest.mock("react-native-safe-area-context", () => {
 });
 jest.mock("expo-symbols", () => ({ SymbolView: () => null }));
 jest.mock("@/lib/supabase", () => ({ supabase: {} }));
+jest.mock("@/features/reminders/reminders", () => ({
+  useLogReminderActions: () => ({ turnOn: mockTurnOn }),
+}));
 jest.mock("@/features/profile/profile", () => {
   const actual = jest.requireActual<
     typeof import("@/features/profile/profile")
@@ -80,5 +93,56 @@ describe("OnboardingScreen", () => {
     expect(
       screen.getByTestId("profile-goal-lose").props.accessibilityState?.checked,
     ).toBe(true);
+  });
+
+  describe("reminder offer after 'Bắt đầu' (Reminders.md §2)", () => {
+    const start = async () => {
+      mockTurnOn.mockReset();
+      mockTurnOn.mockResolvedValue({ kind: "on" });
+      const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+      await render(<OnboardingScreen />);
+      await fill();
+      await continueToSummary();
+      await fireEvent.press(screen.getByTestId("onboarding-start"));
+      return alert;
+    };
+    const button = (
+      alert: jest.SpiedFunction<typeof Alert.alert>,
+      text: string,
+    ) =>
+      (alert.mock.calls[0][2] as AlertButton[]).find((b) => b.text === text)!;
+
+    it("asks about 20:00; 'Để sau' never asks for permission (REM-01)", async () => {
+      mockMutateAsync.mockResolvedValue({ ok: true });
+      const alert = await start();
+      await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
+      expect(alert.mock.calls[0][1]).toBe(
+        "Nhắc bạn ghi bữa ăn lúc 20:00 mỗi ngày?",
+      );
+      const later = button(alert, "Để sau");
+      later.onPress?.();
+      expect(mockTurnOn).not.toHaveBeenCalled();
+      alert.mockRestore();
+    });
+
+    it("'Bật' turns the reminder on at 20:00", async () => {
+      mockMutateAsync.mockResolvedValue({ ok: true });
+      const alert = await start();
+      await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
+      button(alert, "Bật").onPress?.();
+      expect(mockTurnOn).toHaveBeenCalledWith({ hour: 20, minute: 0 });
+      alert.mockRestore();
+    });
+
+    it("is not offered when the profile did not save", async () => {
+      mockMutateAsync.mockResolvedValue({
+        ok: false,
+        failure: { field: "form", message: "Không lưu được. Thử lại sau." },
+      });
+      const alert = await start();
+      expect(await screen.findByTestId("onboarding-error")).toBeTruthy();
+      expect(alert).not.toHaveBeenCalled();
+      alert.mockRestore();
+    });
   });
 });

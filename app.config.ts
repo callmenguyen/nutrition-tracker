@@ -29,6 +29,11 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     [
+      "expo-notifications",
+      // Status-bar icon of the log reminder: a white silhouette (Android tints it).
+      { icon: "./assets/images/android-icon-monochrome.png" },
+    ],
+    [
       "expo-splash-screen",
       {
         backgroundColor: "#208AEF",

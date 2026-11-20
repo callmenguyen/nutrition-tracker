@@ -293,6 +293,42 @@ describe("tables", () => {
     });
   });
 
+  it("user_settings: defaults on the first write, Postgres time text, 5-minute check (#20)", async () => {
+    const { client, userId } = await signedIn("a@example.com");
+    const saved = await client
+      .from("user_settings")
+      .upsert(
+        { log_reminder_enabled: true, log_reminder_time: "21:05" },
+        { onConflict: "user_id" },
+      );
+    expect(saved.error).toBeNull();
+    const { data } = await client
+      .from("user_settings")
+      .select("log_reminder_enabled, log_reminder_time, workout_enabled")
+      .eq("user_id", userId)
+      .maybeSingle();
+    expect(data).toEqual({
+      log_reminder_enabled: true,
+      log_reminder_time: "21:05:00",
+      workout_enabled: false,
+    });
+
+    const bad = await client
+      .from("user_settings")
+      .upsert({ log_reminder_time: "21:07" }, { onConflict: "user_id" });
+    expect(bad.error?.code).toBe("23514");
+    const noTime = await client
+      .from("user_settings")
+      .upsert({ log_reminder_time: "20:65" }, { onConflict: "user_id" });
+    expect(noTime.error).not.toBeNull();
+    const kept = await client
+      .from("user_settings")
+      .select("log_reminder_time")
+      .eq("user_id", userId)
+      .maybeSingle();
+    expect(kept.data).toEqual({ log_reminder_time: "21:05:00" });
+  });
+
   it("never shows or writes another user's row", async () => {
     const a = await signedIn("a@example.com");
     const b = await signedIn("b@example.com");

@@ -181,8 +181,13 @@ def app_in_foreground(request, config: dict):
     yield
 
 
-# Logcat tags worth keeping: JS console/errors, native crashes, Expo modules. Other apps' lines are dropped.
-_LOGCAT_KEEP = re.compile(r"ReactNativeJS|ReactNative|AndroidRuntime|Expo|Hermes|FATAL|nutritiontracker")
+# Logcat tags worth keeping: JS console/errors, native crashes, Expo modules (their tags are lower
+# case, e.g. "expo-notifications"), broadcasts and alarms the notification scheduler relies on (#20).
+# Other apps' lines are dropped.
+_LOGCAT_KEEP = re.compile(
+    r"ReactNativeJS|ReactNative|AndroidRuntime|Expo|expo-|Hermes|FATAL|nutritiontracker"
+    r"|NotificationsService|BroadcastQueue|AlarmManager|SecurityException"
+)
 
 
 def _safe_name(nodeid: str) -> str:
