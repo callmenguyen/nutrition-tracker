@@ -344,3 +344,10 @@ Mẫu một mục:
   - E2E `tests/test_delete_account.py` trên máy thật, với mock backend (ADR-016): 2/2 đạt. Chưa thử xoá tài khoản nào trên cloud.
 - **Kết quả:** PR `docs/21-e2e-deploy`.
 
+## 2026-11-21 · Thử nhắc nhở trên máy thật (#20): làm tròn giờ nhắc
+- **Yêu cầu:** Chủ dự án báo "chỉ chọn được giờ chia hết cho 5" và không nhận được thông báo.
+- **Quyết định:**
+  - Bước 5 phút giữ nguyên (Reminders.md §2, check constraint của `user_settings`). Đổi cách làm tròn từ **xuống** sang **lên**: chọn 14:07 cũ thành 14:05, đã qua nên nhắc dời sang ngày mai; nay thành 14:10, vẫn trong hôm nay. 23:58 thành 00:00. Màn hình ghi rõ giờ lẻ được làm tròn lên.
+  - Thông báo không đến: Metro không có cảnh báo từ `followOnDevice`, tức là lệnh lên lịch không trả về (cùng hiện tượng với lệnh hủy lúc chạy E2E). Cần logcat từ máy và kiểm "Tự khởi động" trước khi sửa tiếp.
+- **Kết quả:** PR `fix/20-reminder-time-rounding`.
+
