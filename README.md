@@ -51,6 +51,7 @@ npm run lint                 # ESLint (eslint-config-expo)
 npm run format:check         # Prettier
 npm run test:coverage        # Jest + React Native Testing Library
 npm run test:db              # pgTAP trên Supabase local (cần `npx supabase start`)
+npm run test:functions       # Edge Function trên Supabase local (cần `npx supabase start` và biến từ `npx supabase status -o env`)
 npm run build                # expo export android: JS bundle được
 scripts/build-debug-apk.sh               # APK debug → build/app-debug.apk
 e2e/mobile-appium/scripts/run-metro.sh   # Metro cho APK debug (terminal riêng)
@@ -61,6 +62,7 @@ e2e/mobile-appium/scripts/run-test.sh    # E2E Appium trên thiết bị Android
 |---|---|---|
 | Jest / RNTL | Logic thuần, component render và phản hồi đúng | Hành vi native, mạng, backend thật |
 | pgTAP | RLS, constraint, RPC trên Postgres thật (local) | Cấu hình project cloud, SMTP |
+| `test:functions` | Edge Function `delete-account` với Auth và cascade thật (local) | Function đã deploy lên cloud |
 | `build` | JS bundle được cho Android | APK chạy được trên máy |
 | E2E Appium | Luồng chính chạy trên một thiết bị thật cụ thể, với mock backend | Backend Supabase thật, mọi model máy, thông báo đúng giờ, chế độ tiết kiệm pin |
 

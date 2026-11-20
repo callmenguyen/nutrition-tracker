@@ -325,3 +325,14 @@ Mẫu một mục:
   - E2E trên máy thật (HyperOS) lộ ra `cancelScheduledNotificationAsync` không bao giờ trả về (broadcast tới `NotificationsService` không có phản hồi), làm công tắc khoá mãi: bỏ bước hủy (cùng id đã tự thay lịch cũ) và không `await` lịch trên máy trong luồng giao diện; cài đặt đã lưu là kết quả, lần đồng bộ sau áp dụng lại. Bộ lọc logcat của E2E giữ thêm tag `expo-*` và broadcast/alarm.
 - **Kết quả:** PR `feat/20-reminders`.
 
+## 2026-11-21 · `/kessie-skills:proj build #21` — Xoá tài khoản
+- **Yêu cầu:** Làm issue #21: Edge Function `delete-account` và UI (ACC-11, ACC-12). Chủ dự án tạm chưa chạy được E2E trên máy.
+- **Quyết định:**
+  - Function xác thực JWT bằng service role, xác thực lại mật khẩu bằng `signInWithPassword` trên một client riêng, rồi `auth.admin.deleteUser` đúng id lấy từ JWT; mọi bảng xoá theo cascade (ADR-003), không cần migration.
+  - Khoá lấy từ biến mặc định `SUPABASE_PUBLISHABLE_KEYS` / `SUPABASE_SECRET_KEYS`, `verify_jwt = false` và tự kiểm JWT (theo tài liệu Supabase về khoá kiểu mới). Mã lỗi ổn định: 401, 400, 403 `wrong_password`, 429, 500.
+  - Logic ở `handler.ts` thuần, test bằng Jest (project `functions`); máy dev không có Docker nên test với Auth và cascade thật chạy ở job CI mới "Edge Functions (local Supabase)" (`npm run test:functions`).
+  - UI: nút "Xoá tài khoản" màu cảnh báo (`Button tone="danger"`), hộp thoại Modal với ô mật khẩu; thành công thì đăng xuất local.
+  - Mock backend (ADR-016): route `/functions/v1/delete-account` cùng hợp đồng.
+  - E2E TC-E2E-20 (`tests/test_delete_account.py`) đã viết, chưa chạy trên máy.
+- **Kết quả:** PR `feat/21-delete-account`.
+

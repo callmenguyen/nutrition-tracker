@@ -1,4 +1,8 @@
-import type { AuthError } from "@supabase/supabase-js";
+import {
+  type AuthError,
+  FunctionsFetchError,
+  FunctionsHttpError,
+} from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
 import { z } from "zod";
 
@@ -160,6 +164,65 @@ export async function updatePassword({
 export async function signOut(): Promise<Result> {
   const { error } = await supabase.auth.signOut({ scope: "local" });
   return error ? fail(error) : ok;
+}
+
+// ------------------------------------------------------------ delete account
+export type DeleteAccountResult =
+  { ok: true } | { ok: false; field: "password" | "form"; message: string };
+
+/** Error codes of supabase/functions/delete-account/handler.ts → what the dialog says. */
+async function deleteFailure(
+  error: unknown,
+): Promise<Exclude<DeleteAccountResult, { ok: true }>> {
+  if (error instanceof FunctionsFetchError) {
+    return { ok: false, field: "form", message: NETWORK_MESSAGE };
+  }
+  let code: unknown;
+  if (error instanceof FunctionsHttpError) {
+    code = await (error.context as Response)
+      .json()
+      .then((b: { error?: unknown }) => b?.error)
+      .catch(() => undefined);
+  }
+  switch (code) {
+    case "wrong_password":
+      return { ok: false, field: "password", message: "Mật khẩu không đúng" };
+    case "rate_limited":
+      return {
+        ok: false,
+        field: "form",
+        message: "Bạn thao tác quá nhanh, đợi một lát rồi thử lại",
+      };
+    case "unauthorized":
+      return {
+        ok: false,
+        field: "form",
+        message: "Phiên đăng nhập đã hết hạn. Đăng nhập lại rồi thử lại.",
+      };
+    default:
+      return {
+        ok: false,
+        field: "form",
+        message: "Không xoá được tài khoản. Thử lại sau.",
+      };
+  }
+}
+
+/**
+ * Account.md §3.4: the server re-checks the password and deletes the user with every row
+ * (Edge Function delete-account, ADR-003); then this device signs out and shows Đăng nhập.
+ * A wrong password or a failure deletes nothing (ACC-12).
+ */
+export async function deleteAccount(
+  password: string,
+): Promise<DeleteAccountResult> {
+  const { error } = await supabase.functions.invoke("delete-account", {
+    body: { password },
+  });
+  if (error) return deleteFailure(error);
+  // The account no longer exists; dropping the local session moves the app to Đăng nhập.
+  await supabase.auth.signOut({ scope: "local" });
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- callback

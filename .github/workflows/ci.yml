@@ -56,3 +56,27 @@ jobs:
         run: supabase db reset
       - name: Run pgTAP suites (supabase/tests)
         run: supabase test db
+
+  functions:
+    name: Edge Functions (local Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.0.0 # keep in sync with the `supabase` devDependency
+      - name: Start local Supabase (Auth, REST, Edge Functions only)
+        run: supabase start -x studio,imgproxy,storage-api,realtime,logflare,vector,supavisor,postgres-meta
+      # delete-account with real Auth and cascades (ACC-11, ACC-12, #21). Local keys only.
+      - name: Run Edge Function integration tests
+        run: |
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          npm run test:functions

@@ -94,6 +94,8 @@ type ButtonProps = {
   label: string;
   onPress: () => void;
   variant?: "filled" | "text";
+  /** "danger": irreversible actions (Xoá tài khoản) in the error colour. */
+  tone?: "default" | "danger";
   loading?: boolean;
   disabled?: boolean;
   /** Spoken name when the visible label is ambiguous (e.g. several "Dùng gợi ý"). */
@@ -108,6 +110,7 @@ export function Button({
   label,
   onPress,
   variant = "filled",
+  tone = "default",
   loading,
   disabled,
   onPressWhileDisabled,
@@ -116,7 +119,11 @@ export function Button({
 }: ButtonProps) {
   const { colors } = useTheme();
   const filled = variant === "filled";
+  const danger = tone === "danger";
   const inactive = disabled || loading;
+  const fill = danger ? colors.error : colors.primary;
+  // Text on the error fill: the page colour, which contrasts with it in both schemes.
+  const onFill = danger ? colors.background : colors.onPrimary;
   return (
     <Pressable
       onPress={disabled ? onPressWhileDisabled : onPress}
@@ -131,7 +138,7 @@ export function Button({
       testID={testID}
       style={({ pressed }) => [
         styles.button,
-        filled && { backgroundColor: colors.primary },
+        filled && { backgroundColor: fill },
         // M3: text buttons use 12 dp side padding (filled: 24 dp).
         !filled && styles.textButton,
         inactive && filled && { opacity: 0.38 },
@@ -144,12 +151,9 @@ export function Button({
         <View collapsable={false} style={StyleSheet.absoluteFill} />
       ) : null}
       {loading ? (
-        <ActivityIndicator color={filled ? colors.onPrimary : colors.primary} />
+        <ActivityIndicator color={filled ? onFill : fill} />
       ) : (
-        <ThemedText
-          variant="label"
-          tint={filled ? colors.onPrimary : colors.primary}
-        >
+        <ThemedText variant="label" tint={filled ? onFill : fill}>
           {label}
         </ThemedText>
       )}
