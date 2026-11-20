@@ -821,3 +821,87 @@ describe("daily_totals for Biểu đồ (#19)", () => {
     expect(longest.error).toBeNull();
   });
 });
+
+describe("delete-account Edge Function (#21)", () => {
+  const seed = async (client: SupabaseClient) => {
+    await client.from("profiles").upsert(
+      {
+        weight_kg: 70,
+        height_cm: 175,
+        sex: "male",
+        birth_year: 1996,
+        activity_level: "moderate",
+        goal_type: "lose",
+      },
+      { onConflict: "user_id" },
+    );
+    const { error } = await client.rpc("log_meal", {
+      p_id: crypto.randomUUID(),
+      p_eaten_on: new Date().toISOString().slice(0, 10),
+      p_name: "Bún nạm",
+      p_calories_kcal: 450,
+      p_protein_g: 25,
+      p_sodium_mg: 1800,
+      p_sugar_g: 6,
+    });
+    expect(error).toBeNull();
+  };
+  const status = async (
+    client: SupabaseClient,
+    body: unknown,
+  ): Promise<{ status: number; body: unknown }> => {
+    const { data, error } = await client.functions.invoke("delete-account", {
+      body: body as Record<string, unknown>,
+    });
+    if (!error) return { status: 200, body: data };
+    const res = (error as { context: Response }).context;
+    return { status: res.status, body: await res.json() };
+  };
+  const profileOf = async (client: SupabaseClient, userId: string) =>
+    (
+      await client
+        .from("profiles")
+        .select("weight_kg")
+        .eq("user_id", userId)
+        .maybeSingle()
+    ).data;
+
+  it("ACC-12: a wrong password, a missing password or no session deletes nothing", async () => {
+    const a = await signedIn("a@example.com");
+    await seed(a.client);
+    expect(await status(a.client, { password: "nope" })).toEqual({
+      status: 403,
+      body: { error: "wrong_password" },
+    });
+    expect((await status(a.client, {})).status).toBe(400);
+    expect((await status(device(), { password: "password-1" })).status).toBe(
+      401,
+    );
+    expect(await profileOf(a.client, a.userId)).toEqual({ weight_kg: 70 });
+  });
+
+  it("ACC-11: the right password removes the user and every row; B keeps theirs", async () => {
+    const a = await signedIn("a@example.com");
+    const b = await signedIn("b@example.com");
+    await seed(a.client);
+    await seed(b.client);
+
+    expect(
+      await status(a.client, { password: "password-1", user_id: b.userId }),
+    ).toEqual({ status: 200, body: { deleted: true } });
+
+    const again = await device().auth.signInWithPassword({
+      email: "a@example.com",
+      password: "password-1",
+    });
+    expect(again.error?.code).toBe("invalid_credentials");
+    expect(await profileOf(a.client, a.userId)).toBeNull();
+    const meals = await a.client
+      .from("meal_entries")
+      .select("id")
+      .eq("user_id", a.userId);
+    expect(meals.data).toEqual([]);
+
+    expect(await profileOf(b.client, b.userId)).toEqual({ weight_kg: 70 });
+  });
+});

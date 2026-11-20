@@ -15,6 +15,15 @@ module.exports = {
       },
       testMatch: ["<rootDir>/e2e/mock-backend/__tests__/**/*.test.ts"],
     },
+    {
+      // Edge Function logic (handler.ts files); the Deno entry points are tested in CI (#21).
+      displayName: "functions",
+      testEnvironment: "node",
+      transform: {
+        "\\.ts$": ["babel-jest", { presets: ["babel-preset-expo"] }],
+      },
+      testMatch: ["<rootDir>/supabase/functions/**/__tests__/**/*.test.ts"],
+    },
   ],
   collectCoverageFrom: [
     "src/domain/**/*.ts",

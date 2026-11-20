@@ -579,6 +579,40 @@ export function createMockBackend(): { server: Server } {
     return notMocked(req, res, url.pathname);
   }
 
+  /**
+   * Edge Functions the app calls (supabase/functions/*), with the same contract as their Deno
+   * handlers. delete-account removes the user like the auth.users cascade does (#21).
+   */
+  function edgeFunction(
+    req: IncomingMessage,
+    res: ServerResponse,
+    url: URL,
+    body: Json,
+  ) {
+    const name = url.pathname.slice("/functions/v1/".length);
+    if (name !== "delete-account") return notMocked(req, res, url.pathname);
+    if (req.method !== "POST") {
+      return send(res, 405, { error: "method_not_allowed" });
+    }
+    const user = state.users.get(userIdFrom(req) ?? "");
+    if (!user) return send(res, 401, { error: "unauthorized" });
+    const password = body?.password;
+    if (typeof password !== "string" || password.length === 0) {
+      return send(res, 400, { error: "invalid_request" });
+    }
+    if (password !== user.password) {
+      return send(res, 403, { error: "wrong_password" });
+    }
+    state.users.delete(user.id);
+    for (const [token, owner] of state.refreshTokens) {
+      if (owner === user.id) state.refreshTokens.delete(token);
+    }
+    for (const rows of state.tables.values()) rows.delete(user.id);
+    state.mealEntries = state.mealEntries.filter((r) => r.user_id !== user.id);
+    state.foods = state.foods.filter((r) => r.user_id !== user.id);
+    return send(res, 200, { deleted: true });
+  }
+
   /** The SQL functions the app calls (supabase/migrations/…_meal_entries_foods.sql, …_daily_totals.sql). */
   function rpc(
     req: IncomingMessage,
@@ -859,6 +893,9 @@ export function createMockBackend(): { server: Server } {
         }
         if (url.pathname.startsWith("/rest/v1/"))
           return rest(req, res, url, body);
+        if (url.pathname.startsWith("/functions/v1/")) {
+          return edgeFunction(req, res, url, body as Json);
+        }
         return notMocked(req, res, url.pathname);
       })
       .catch((error: unknown) => {

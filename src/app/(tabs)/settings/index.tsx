@@ -5,15 +5,16 @@ import { Button, FormError } from "@/components/form";
 import { FormScreen } from "@/components/form-screen";
 import { ListRow } from "@/components/list-row";
 import { ThemedText } from "@/components/themed-text";
-import { signOut } from "@/features/auth/auth";
+import { deleteAccount, signOut } from "@/features/auth/auth";
 import { useAuth } from "@/features/auth/auth-provider";
+import { DeleteAccountDialog } from "@/features/auth/delete-account-dialog";
 import { formatInt } from "@/domain/format";
 import { formatReminderTime } from "@/domain/reminder";
 import { useTargets } from "@/features/goals/goals";
 import { useProfile } from "@/features/profile/profile";
 import { useReminderSettings } from "@/features/reminders/reminders";
 
-/** Cài đặt. 0.1.0 adds Xoá tài khoản in a later issue. */
+/** Cài đặt (Account.md §2): Hồ sơ, Mục tiêu, Món đã lưu, Nhắc nhở, Tài khoản. */
 export default function SettingsScreen() {
   const router = useRouter();
   const { session } = useAuth();
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
     : undefined;
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const onSignOut = async () => {
     setBusy(true);
@@ -85,6 +87,18 @@ export default function SettingsScreen() {
         onPress={onSignOut}
         loading={busy}
         testID="settings-signout"
+      />
+      <Button
+        label="Xoá tài khoản"
+        variant="text"
+        tone="danger"
+        onPress={() => setDeleting(true)}
+        testID="settings-delete-account"
+      />
+      <DeleteAccountDialog
+        visible={deleting}
+        onCancel={() => setDeleting(false)}
+        onConfirm={deleteAccount}
       />
     </FormScreen>
   );
