@@ -41,6 +41,8 @@
 >
 > **Tình trạng theo issue (#19, 2026-11-19):** TC-E2E-17 nằm trong `tests/test_chart.py`. Biểu đồ là canvas Skia mà UiAutomator không đọc được, nên giá trị và khoảng trống được kiểm qua chế độ bảng (CHART-14): 3 ngày có tổng, 4 ngày "Chưa ghi"; lựa chọn 30 ngày + Đường còn sau khi tắt app; "Mở ngày này" mở đúng ngày trên Hôm nay với cùng tổng; thêm món rồi quay lại thì bảng cập nhật. Ngưỡng (CHART-04, CHART-05) kiểm bằng unit test và component test; đọc bằng TalkBack thật vẫn là TC-DEV-05.
 
+> **Tình trạng theo issue (#20, 2026-11-21):** TC-E2E-18 chia hai chỗ. REM-01 nằm trong `tests/test_onboarding.py`, ngay sau "Bắt đầu": chọn "Để sau", không có hộp thoại quyền, và Cài đặt hiện "Nhắc nhở, Tắt". REM-04 và REM-07 (phần một máy) nằm trong `tests/test_reminders.py`: từ chối quyền thì công tắc tắt và hiện "Bị chặn" + "Mở cài đặt"; cho phép ở lần hỏi thứ hai, đổi giờ sang 21:00 trên dial Compose, tắt app mở lại thì vẫn bật và vẫn 21:00. REM-11 kiểm bằng component test và test luồng (lưu lỗi thì không gọi lên lịch hay hủy). Thông báo đến, bấm mở app, đổi giờ, tắt, đăng xuất (REM-02, 03, 05, 06, 08) vẫn là TC-DEV-02.
+
 ### 0.2.0 (Workout)
 | Mã | AC | Tiền điều kiện | Bước chính | Kết quả mong đợi |
 |---|---|---|---|---|

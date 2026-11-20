@@ -17,9 +17,12 @@ import {
   useHasProfile,
 } from "@/features/auth/auth-provider";
 import { profileCheck, routeState } from "@/features/auth/route-state";
+import { showNotificationsInForeground } from "@/features/reminders/scheduler";
 import { space } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { createQueryClient } from "@/lib/query-client";
+
+showNotificationsInForeground();
 
 /**
  * Session-based routing (Account.md §3.1, see routeState). Every routeState leaves exactly one

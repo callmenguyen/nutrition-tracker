@@ -8,15 +8,18 @@ import { ThemedText } from "@/components/themed-text";
 import { signOut } from "@/features/auth/auth";
 import { useAuth } from "@/features/auth/auth-provider";
 import { formatInt } from "@/domain/format";
+import { formatReminderTime } from "@/domain/reminder";
 import { useTargets } from "@/features/goals/goals";
 import { useProfile } from "@/features/profile/profile";
+import { useReminderSettings } from "@/features/reminders/reminders";
 
-/** Cài đặt. 0.1.0 adds Nhắc nhở and Xoá tài khoản in later issues. */
+/** Cài đặt. 0.1.0 adds Xoá tài khoản in a later issue. */
 export default function SettingsScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const profile = useProfile();
   const { targets } = useTargets();
+  const reminder = useReminderSettings().data;
   const summary = profile.data
     ? `${String(profile.data.weightKg).replace(".", ",")} kg · ${profile.data.heightCm} cm`
     : undefined;
@@ -54,6 +57,18 @@ export default function SettingsScreen() {
         label="Món đã lưu"
         onPress={() => router.push("/settings/saved-foods")}
         testID="settings-saved-foods"
+      />
+      <ListRow
+        label="Nhắc nhở"
+        supporting={
+          reminder
+            ? reminder.enabled
+              ? `${formatReminderTime(reminder.time)} mỗi ngày`
+              : "Tắt"
+            : undefined
+        }
+        onPress={() => router.push("/settings/reminders")}
+        testID="settings-reminders"
       />
       <ThemedText variant="titleMedium">Tài khoản</ThemedText>
       <ThemedText

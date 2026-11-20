@@ -7,6 +7,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 ## [Unreleased]
 
 ### Thêm
+- Nhắc ghi chép: sau Onboarding hỏi "Nhắc bạn ghi bữa ăn lúc 20:00 mỗi ngày?" (Bật / Để sau); Cài đặt › Nhắc nhở có công tắc, giờ nhắc (bước 5 phút) và trạng thái quyền thông báo kèm nút "Mở cài đặt" khi bị chặn. Thông báo được lên lịch ngay trên máy, mỗi ngày một lần, có thể đến trễ; bấm vào thì mở Hôm nay; đăng xuất thì máy đó không nhắc nữa; cài đặt lưu theo tài khoản ([#20](https://github.com/callmenguyen/nutrition-tracker/issues/20)).
 - Tab Biểu đồ: tổng calo, đạm, natri, đường theo ngày trong 7 hoặc 30 ngày, dạng cột hoặc đường; ngày chưa ghi để trống (không vẽ 0); các đường ngưỡng nét đứt theo mục tiêu hiện tại; chạm một ngày để xem thẻ chi tiết và "Mở ngày này" trên tab Hôm nay; chế độ bảng cho trình đọc màn hình; lựa chọn được nhớ trên máy; số liệu tự cập nhật sau khi ghi món ([#19](https://github.com/callmenguyen/nutrition-tracker/issues/19)).
 - Cài đặt › Món đã lưu: danh sách món đã lưu theo A→Z, ô tìm kiếm không phân biệt dấu; bấm giữ một món để xoá (có xác nhận). Món đã xoá không còn trong gợi ý, các món đã ghi trước đó không đổi ([#18](https://github.com/callmenguyen/nutrition-tracker/issues/18)).
 - Ghi món: nút "+" và "Thêm món" mở bottom sheet nhập tên, calo, đạm, natri, đường và ngày; gõ tên thì gợi ý tối đa 5 món đã lưu (không phân biệt dấu), chọn gợi ý thì tự điền dinh dưỡng; chạm vào món để sửa hoặc xoá (có xác nhận); báo lỗi đúng trường; mất mạng thì giữ nguyên dữ liệu đã nhập, bấm Lưu lại không ghi trùng ([#17](https://github.com/callmenguyen/nutrition-tracker/issues/17)).
@@ -28,5 +29,6 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 ### Ghi chú nâng cấp
 - Migration mới `20261118204252_daily_totals.sql` (hàm `daily_totals`) cần áp dụng lên Supabase cloud trước khi phát hành bản có tab Biểu đồ.
 - Thêm phụ thuộc native `@shopify/react-native-skia` và `victory-native`: cần build lại APK.
+- Thêm phụ thuộc native `expo-notifications` (quyền `POST_NOTIFICATIONS`, kênh "Nhắc ghi bữa ăn"): cần build lại APK.
 
 [Unreleased]: https://github.com/callmenguyen/nutrition-tracker/commits/main

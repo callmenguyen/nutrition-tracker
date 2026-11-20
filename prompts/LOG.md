@@ -306,3 +306,22 @@ Mẫu một mục:
   - Chạy trên máy thật lộ ra: nhãn ngưỡng vẽ bằng Skia mất dấu tiếng Việt → chuyển sang Text RN chồng lên canvas; chip "Natri"/"Đường" bị xuống dòng → giảm padding ngang của `ChoiceGroup` hàng ngang; chọn dòng trong bảng thì thẻ chi tiết hiện ngay dưới dòng đó.
   - Hạ tầng E2E: Appium không cài lại APK cùng versionName → `enforceAppInstall`; Metro trên ổ ngoài không nhận thay đổi → khởi động lại với `--clear` (ghi vào CLAUDE.md).
 - **Kết quả:** PR `feat/19-chart`.
+
+## 2026-11-21 · Áp dụng migration `daily_totals` lên Supabase cloud
+- **Yêu cầu:** "đẩy lên đi" sau khi PR #58 (#19) merge.
+- **Quyết định:** Project cloud đang tạm dừng (INACTIVE) nên `db push` hết thời gian chờ; chủ dự án bật lại project, `--dry-run` chỉ có `20261118204252_daily_totals.sql`, rồi đẩy thật; chạy lại `--dry-run` báo đã cập nhật.
+- **Kết quả:** không có thay đổi trong repo ngoài mục này.
+
+## 2026-11-21 · `/kessie-skills:proj build #20` — Nhắc ghi chép
+- **Yêu cầu:** Làm issue #20: notificationScheduler và Cài đặt › Nhắc nhở (REM-01–08, REM-11).
+- **Quyết định:**
+  - `expo-notifications` (ADR-006, không cần ADR mới), trigger DAILY với id cố định nên lên lịch lại luôn thay cái cũ; kênh Android tạo trước khi xin quyền. Phụ thuộc native: build lại APK.
+  - Chọn giờ bằng `TimePickerDialog` Material 3 của `@expo/ui` (24h); phút làm tròn xuống bội số 5 vì dial không có bước 5 phút. Đổi giờ được cả khi đang tắt (chỉ lưu).
+  - Thứ tự ghi: quyền → server → lịch trên máy; lưu lỗi thì giao diện và lịch đều giữ như cũ (REM-11).
+  - Dòng quyền: "Đã cho phép"; "Bị chặn trong cài đặt hệ thống" + "Mở cài đặt" khi hệ thống không cho hỏi lại hoặc người dùng vừa từ chối; chưa hỏi thì không hiện (Android 13 không phân biệt "chưa hỏi" với "từ chối một lần").
+  - Tài khoản chưa có dòng `user_settings` dùng mặc định của spec §4 (tắt, 20:00), trùng default của cột.
+  - Đồng bộ lịch khi mở app / quay lại foreground trong layout `(tabs)`; hủy khi `SIGNED_OUT` trong `AuthProvider`. Bấm thông báo → Hôm nay qua `?day=&at=` có sẵn từ #19.
+  - Mock backend (ADR-016): `user_settings` có default khi tạo dòng, trả giờ dạng Postgres `HH:mm:ss` và từ chối phút không chia hết cho 5.
+  - E2E trên máy thật (HyperOS) lộ ra `cancelScheduledNotificationAsync` không bao giờ trả về (broadcast tới `NotificationsService` không có phản hồi), làm công tắc khoá mãi: bỏ bước hủy (cùng id đã tự thay lịch cũ) và không `await` lịch trên máy trong luồng giao diện; cài đặt đã lưu là kết quả, lần đồng bộ sau áp dụng lại. Bộ lọc logcat của E2E giữ thêm tag `expo-*` và broadcast/alarm.
+- **Kết quả:** PR `feat/20-reminders`.
+

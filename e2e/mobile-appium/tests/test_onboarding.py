@@ -147,7 +147,18 @@ def test_onboarding_validation_then_save(driver, config):
     )
     driver.implicitly_wait(10)
     by_id(driver, "onboarding-start").click()
+    # REM-01 (TC-E2E-18): the reminder offer; "Để sau" keeps it off and asks for no permission.
+    assert "20:00" in by_text(driver, "Nhắc bạn ghi bữa ăn.*").text
+    by_text(driver, "^Để sau$").click()
     assert by_id(driver, "screen-today").is_displayed()
+    driver.implicitly_wait(0)
+    assert not driver.find_elements(
+        AppiumBy.XPATH, '//*[starts-with(@resource-id, "com.android.permissioncontroller:")]'
+    )
+    driver.implicitly_wait(10)
+    by_text(driver, "Cài đặt").click()
+    assert by_id(driver, "settings-reminders").get_attribute("content-desc") == "Nhắc nhở, Tắt"
+    by_text(driver, "Hôm nay").click()
 
     restart_app(driver, config["appPackage"])
     assert by_id(driver, "screen-today").is_displayed()

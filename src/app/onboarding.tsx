@@ -7,12 +7,14 @@ import { FormScreen } from "@/components/form-screen";
 import { computeTargets, type Profile } from "@/domain/nutrition";
 import { signOut } from "@/features/auth/auth";
 import { TargetsSummary } from "@/features/goals/targets-summary";
+import { DEFAULT_LOG_REMINDER, formatReminderTime } from "@/domain/reminder";
 import {
   EMPTY_PROFILE_FORM,
   toFormValues,
   useSaveProfile,
 } from "@/features/profile/profile";
 import { ProfileForm } from "@/features/profile/profile-form";
+import { useLogReminderActions } from "@/features/reminders/reminders";
 
 /**
  * Account.md §2: profile form → "Tiếp tục" → summary of BMI, BMR and suggested goals → "Bắt đầu".
@@ -20,6 +22,7 @@ import { ProfileForm } from "@/features/profile/profile-form";
  */
 export default function OnboardingScreen() {
   const save = useSaveProfile();
+  const reminder = useLogReminderActions();
   // The last profile typed; kept when going back from the summary so nothing is retyped.
   const [draft, setDraft] = useState<Profile | null>(null);
   const [showSummary, setShowSummary] = useState(false);
@@ -58,7 +61,12 @@ export default function OnboardingScreen() {
       setError(null);
       try {
         const result = await save.mutateAsync(draft);
-        if (!result.ok) setError(result.failure.message); // stay here, keep the draft (ACC-14)
+        if (!result.ok) {
+          setError(result.failure.message); // stay here, keep the draft (ACC-14)
+          return;
+        }
+        // The guards move on to Hôm nay; the native dialog stays on top (Reminders.md §2).
+        offerReminder(reminder.turnOn);
       } catch {
         setError("Không lưu được. Thử lại sau.");
       }
@@ -104,5 +112,38 @@ export default function OnboardingScreen() {
         testID="onboarding-signout"
       />
     </FormScreen>
+  );
+}
+
+/**
+ * "Nhắc bạn ghi bữa ăn lúc 20:00 mỗi ngày?" after Onboarding. "Để sau" keeps reminders off and
+ * never asks for permission (REM-01); "Bật" asks, saves and schedules like the Settings switch.
+ */
+function offerReminder(
+  turnOn: ReturnType<typeof useLogReminderActions>["turnOn"],
+) {
+  const { time } = DEFAULT_LOG_REMINDER;
+  const failed = () =>
+    Alert.alert(
+      "Không lưu được nhắc nhở",
+      "Bạn bật lại trong Cài đặt › Nhắc nhở.",
+    );
+  Alert.alert(
+    "Nhắc ghi bữa ăn",
+    `Nhắc bạn ghi bữa ăn lúc ${formatReminderTime(time)} mỗi ngày?`,
+    [
+      { text: "Để sau", style: "cancel" },
+      {
+        text: "Bật",
+        onPress: () => {
+          turnOn(time)
+            .then((outcome) => {
+              if (outcome.kind === "error") failed();
+            })
+            .catch(failed);
+        },
+      },
+    ],
+    { cancelable: false },
   );
 }
