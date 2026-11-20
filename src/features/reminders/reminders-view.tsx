@@ -172,7 +172,8 @@ export function RemindersView({
           </ThemedText>
         </Pressable>
         <ThemedText variant="bodySmall" color="onSurfaceVariant">
-          Mỗi ngày một lần, theo giờ của máy. Điện thoại có thể gửi trễ vài
+          Mỗi ngày một lần, theo giờ của máy. Giờ nhắc theo bước 5 phút: giờ lẻ
+          được làm tròn lên (14:07 thành 14:10). Điện thoại có thể gửi trễ vài
           phút.
         </ThemedText>
         {permission === "granted" ? (

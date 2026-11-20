@@ -37,8 +37,12 @@ describe("formatReminderTime", () => {
 });
 
 describe("snapToStep", () => {
-  it("rounds minutes down to a multiple of 5", () => {
+  it("rounds minutes up to a multiple of 5, never before the picked time", () => {
     expect(snapToStep({ hour: 21, minute: 7 })).toEqual({
+      hour: 21,
+      minute: 10,
+    });
+    expect(snapToStep({ hour: 21, minute: 1 })).toEqual({
       hour: 21,
       minute: 5,
     });
@@ -48,10 +52,14 @@ describe("snapToStep", () => {
     });
   });
 
-  it("never moves into the next hour or day", () => {
+  it("carries into the next hour, and past midnight to 00:00", () => {
+    expect(snapToStep({ hour: 21, minute: 58 })).toEqual({
+      hour: 22,
+      minute: 0,
+    });
     expect(snapToStep({ hour: 23, minute: 59 })).toEqual({
-      hour: 23,
-      minute: 55,
+      hour: 0,
+      minute: 0,
     });
   });
 });

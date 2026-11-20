@@ -111,7 +111,7 @@ describe("RemindersView", () => {
     );
   });
 
-  it("a picked time is rounded down to 5 minutes and saved", async () => {
+  it("a picked time is rounded up to 5 minutes and saved", async () => {
     onUpdate.mockResolvedValue({ ok: true });
     await show(ready(ON, "granted"));
     await fireEvent.press(screen.getByTestId("reminder-time"));
@@ -120,7 +120,7 @@ describe("RemindersView", () => {
     await fireEvent(picker, "dateSelected", new Date(2026, 10, 21, 21, 7));
     expect(onUpdate).toHaveBeenCalledWith({
       enabled: true,
-      time: { hour: 21, minute: 5 },
+      time: { hour: 21, minute: 10 },
     });
     expect(screen.queryByTestId("time-picker")).toBeNull();
   });
@@ -131,7 +131,7 @@ describe("RemindersView", () => {
     await fireEvent(
       screen.getByTestId("time-picker"),
       "dateSelected",
-      new Date(2026, 10, 21, 20, 3),
+      new Date(2026, 10, 21, 19, 57),
     );
     expect(onUpdate).not.toHaveBeenCalled();
   });

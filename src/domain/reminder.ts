@@ -32,14 +32,15 @@ export function formatReminderTime(t: ReminderTime): string {
 }
 
 /**
- * A picked time rounded down to the 5-minute step: 21:07 → 21:05. Rounding down never moves the
- * reminder into the next hour (or the next day at 23:58).
+ * A picked time rounded up to the 5-minute step: 21:07 → 21:10, 21:58 → 22:00, 23:58 → 00:00.
+ * Rounding up never lands before the picked time, so a reminder set for a few minutes from now
+ * still comes today instead of jumping to tomorrow (rounding down did, seen on device, #20).
  */
 export function snapToStep(t: ReminderTime): ReminderTime {
-  return {
-    hour: t.hour,
-    minute: t.minute - (t.minute % REMINDER_STEP_MIN),
-  };
+  const total =
+    Math.ceil((t.hour * 60 + t.minute) / REMINDER_STEP_MIN) * REMINDER_STEP_MIN;
+  const wrapped = total % (24 * 60);
+  return { hour: Math.floor(wrapped / 60), minute: wrapped % 60 };
 }
 
 export function sameReminderTime(a: ReminderTime, b: ReminderTime): boolean {
