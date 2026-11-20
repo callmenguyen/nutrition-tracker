@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 3.0.0 # keep in sync with the `supabase` devDependency
       - name: Start Postgres and apply migrations
@@ -70,7 +70,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 3.0.0 # keep in sync with the `supabase` devDependency
       - name: Start local Supabase (Auth, REST, Edge Functions only)
