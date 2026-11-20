@@ -38,7 +38,8 @@ const SETTINGS_TIMES = ["log_reminder_time", "workout_digest_time"];
 /** Postgres `time` as PostgREST returns it ("21:05:00"); null when the check constraint fails. */
 function settingsTime(value: unknown): string | null {
   const m = /^(\d{2}):(\d{2})(?::00)?$/.exec(String(value));
-  if (!m || Number(m[1]) > 23 || Number(m[2]) % 5 !== 0) return null;
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59 || Number(m[2]) % 5 !== 0)
+    return null;
   return `${m[1]}:${m[2]}:00`;
 }
 

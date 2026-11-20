@@ -5,9 +5,9 @@ import { Alert, BackHandler } from "react-native";
 import { Button, FormError } from "@/components/form";
 import { FormScreen } from "@/components/form-screen";
 import { computeTargets, type Profile } from "@/domain/nutrition";
+import { DEFAULT_LOG_REMINDER, formatReminderTime } from "@/domain/reminder";
 import { signOut } from "@/features/auth/auth";
 import { TargetsSummary } from "@/features/goals/targets-summary";
-import { DEFAULT_LOG_REMINDER, formatReminderTime } from "@/domain/reminder";
 import {
   EMPTY_PROFILE_FORM,
   toFormValues,

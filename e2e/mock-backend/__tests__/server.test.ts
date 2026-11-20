@@ -317,6 +317,10 @@ describe("tables", () => {
       .from("user_settings")
       .upsert({ log_reminder_time: "21:07" }, { onConflict: "user_id" });
     expect(bad.error?.code).toBe("23514");
+    const noTime = await client
+      .from("user_settings")
+      .upsert({ log_reminder_time: "20:65" }, { onConflict: "user_id" });
+    expect(noTime.error).not.toBeNull();
     const kept = await client
       .from("user_settings")
       .select("log_reminder_time")

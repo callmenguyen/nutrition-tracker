@@ -21,10 +21,14 @@ export function useReminderSync() {
   useOnAppActive(useCallback(() => setActiveCount((n) => n + 1), []));
   useEffect(() => {
     if (!saved) return;
-    syncLogReminder(saved).catch((e: unknown) => {
+    let current = true;
+    syncLogReminder(saved, () => current).catch((e: unknown) => {
       // Nothing to show: the next app start or foreground tries again.
       console.warn("Log reminder sync failed", e);
     });
+    return () => {
+      current = false;
+    };
   }, [saved, activeCount]);
 }
 

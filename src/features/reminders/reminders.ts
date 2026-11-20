@@ -134,8 +134,12 @@ export async function updateLogReminder(
  * Brings this device in line with the saved setting (§3.4): on app start and when the app comes
  * back, so a new sign-in, a revoked permission or a new time zone is picked up.
  */
-export async function syncLogReminder(r: LogReminder): Promise<void> {
-  if (r.enabled && (await getPermission()) === "granted") {
+export async function syncLogReminder(
+  r: LogReminder,
+  stillWanted: () => boolean = () => true,
+): Promise<void> {
+  // stillWanted: a sync that outlives its screen (e.g. sign-out mid-way) must not schedule again.
+  if (r.enabled && (await getPermission()) === "granted" && stillWanted()) {
     await scheduleLogReminder(r.time);
   } else {
     await cancelLogReminder();

@@ -115,6 +115,14 @@ describe("a scheduler that never answers (seen on HyperOS)", () => {
     });
   });
 
+  it("switching off returns while cancel never answers (as on the test phone)", async () => {
+    mockCancel.mockReturnValue(new Promise<void>(() => {}));
+    expect(await updateLogReminder({ enabled: false, time: at2100 })).toEqual({
+      ok: true,
+    });
+    expect(mockCancel).toHaveBeenCalled();
+  });
+
   it("a failed schedule is logged, the saved setting still stands", async () => {
     mockGetPermission.mockResolvedValue("granted");
     mockSchedule.mockRejectedValue(new Error("Failed to schedule"));
@@ -131,6 +139,12 @@ describe("syncLogReminder (§3.4–3.6)", () => {
     mockGetPermission.mockResolvedValue("granted");
     await syncLogReminder({ enabled: true, time: at2100 });
     expect(mockSchedule).toHaveBeenCalledWith(at2100);
+  });
+
+  it("does not schedule once the sync is no longer wanted (signed out mid-way)", async () => {
+    mockGetPermission.mockResolvedValue("granted");
+    await syncLogReminder({ enabled: true, time: at2100 }, () => false);
+    expect(mockSchedule).not.toHaveBeenCalled();
   });
 
   it("cancels when off or when the permission was revoked", async () => {
