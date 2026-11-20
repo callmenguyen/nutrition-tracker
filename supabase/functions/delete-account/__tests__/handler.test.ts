@@ -95,17 +95,29 @@ describe("delete-account", () => {
   });
 
   it("answers 500 without details when checking or deleting fails", async () => {
+    const log = jest.spyOn(console, "error").mockImplementation(() => {});
     verifyPassword.mockRejectedValueOnce(new Error("auth down"));
     expect(await call(request({ password: "x" }))).toEqual({
       status: 500,
       body: { error: "delete_failed" },
     });
     expect(deleteUser).not.toHaveBeenCalled();
-    deleteUser.mockRejectedValueOnce(new Error("db down"));
+    deleteUser.mockRejectedValueOnce(
+      Object.assign(new Error("a@example.com not deleted"), {
+        status: 500,
+        code: "unexpected_failure",
+      }),
+    );
     expect(await call(request({ password: "x" }))).toEqual({
       status: 500,
       body: { error: "delete_failed" },
     });
+    // Logged without the message, which may contain the email.
+    expect(log).toHaveBeenLastCalledWith(
+      "delete-account: delete failed (status 500, code unexpected_failure)",
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain("a@example.com");
+    log.mockRestore();
   });
 
   it("only accepts POST", async () => {

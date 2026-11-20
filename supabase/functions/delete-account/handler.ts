@@ -25,6 +25,14 @@ export type ErrorCode =
   | "rate_limited"
   | "delete_failed";
 
+/** Status and code only: an auth error's message can contain the email. */
+function logFailure(step: string, error: unknown): void {
+  const e = error as { status?: unknown; code?: unknown } | null;
+  console.error(
+    `delete-account: ${step} failed (status ${String(e?.status)}, code ${String(e?.code)})`,
+  );
+}
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
@@ -59,7 +67,8 @@ export async function handleDeleteAccount(
   let check: PasswordCheck;
   try {
     check = await deps.verifyPassword(caller.email, password);
-  } catch {
+  } catch (error) {
+    logFailure("password check", error);
     return fail(500, "delete_failed");
   }
   if (check === "wrong") return fail(403, "wrong_password"); // ACC-12: nothing deleted
@@ -68,7 +77,8 @@ export async function handleDeleteAccount(
   try {
     // Only the caller's own id, taken from the verified JWT; nothing in the body picks a user.
     await deps.deleteUser(caller.id);
-  } catch {
+  } catch (error) {
+    logFailure("delete", error);
     return fail(500, "delete_failed");
   }
   return json(200, { deleted: true });

@@ -147,6 +147,9 @@ describe("delete-account on local Supabase", () => {
   it("refuses a request without the user's token", async () => {
     const res = await callDelete(null, { password: PASSWORD });
     assert.equal(res.status, 401);
+    // What supabase-js sends without a session: the API key as the bearer token.
+    const anon = await callDelete(ANON_KEY, { password: PASSWORD });
+    assert.equal(anon.status, 401);
     assert.deepEqual(await rowCounts(a.id), ONE_EACH);
   });
 

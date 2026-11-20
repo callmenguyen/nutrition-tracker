@@ -3,6 +3,17 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 import { fail, handleDeleteAccount, type PasswordCheck } from "./handler.ts";
 
+/** The "default" key of a SUPABASE_*_KEYS JSON dictionary, or null when absent or malformed. */
+function defaultKey(json: string | undefined): string | null {
+  if (!json) return null;
+  try {
+    const key = (JSON.parse(json) as Record<string, unknown>).default;
+    return typeof key === "string" && key.length > 0 ? key : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Default secrets that Supabase provides to every function; never hard-coded or defaulted. */
 function readEnv(): {
   url: string;
@@ -10,24 +21,20 @@ function readEnv(): {
   secret: string;
 } | null {
   const url = Deno.env.get("SUPABASE_URL");
-  const publishable = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
-  const secret = Deno.env.get("SUPABASE_SECRET_KEYS");
+  const publishable = defaultKey(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"));
+  const secret = defaultKey(Deno.env.get("SUPABASE_SECRET_KEYS"));
   const missing = [
     !url && "SUPABASE_URL",
-    !publishable && "SUPABASE_PUBLISHABLE_KEYS",
-    !secret && "SUPABASE_SECRET_KEYS",
+    !publishable && "SUPABASE_PUBLISHABLE_KEYS.default",
+    !secret && "SUPABASE_SECRET_KEYS.default",
   ].filter(Boolean);
   if (missing.length > 0) {
     console.error(
-      `delete-account: missing environment variables: ${missing.join(", ")}`,
+      `delete-account: missing or malformed: ${missing.join(", ")}`,
     );
     return null;
   }
-  return {
-    url: url!,
-    publishable: JSON.parse(publishable!).default,
-    secret: JSON.parse(secret!).default,
-  };
+  return { url: url!, publishable: publishable!, secret: secret! };
 }
 
 const noSession = { auth: { persistSession: false, autoRefreshToken: false } };
