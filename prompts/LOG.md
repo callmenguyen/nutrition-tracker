@@ -351,3 +351,11 @@ Mẫu một mục:
   - Thông báo không đến: Metro không có cảnh báo từ `followOnDevice`, tức là lệnh lên lịch không trả về (cùng hiện tượng với lệnh hủy lúc chạy E2E). Cần logcat từ máy và kiểm "Tự khởi động" trước khi sửa tiếp.
 - **Kết quả:** PR `fix/20-reminder-time-rounding`.
 
+## 2026-11-21 · Thông báo không đến trên máy HyperOS (#20)
+- **Yêu cầu:** "giữ như spec, fix lỗi thông báo thôi"; sau đó hỏi có thay bằng Firebase push được không, rồi chốt "vẫn dùng patch".
+- **Quyết định:**
+  - Bằng chứng từ `dumpsys activity broadcasts` (chủ dự án chạy): các broadcast `NOTIFICATION_EVENT` của `expo-notifications` nằm trong hàng đợi broadcast nền, một cái chờ 3 phút 17 giây, xếp sau broadcast của app khác. Bật "Tự khởi động" không giải quyết được.
+  - So với FCM (ADR-007, cần ADR mới, `device_tokens`, cron, Edge Function, 3–4 PR, cần mạng lúc nhắc), chọn patch: patch-package gắn `FLAG_RECEIVER_FOREGROUND` ở `doWork` và ở PendingIntent của alarm. Thư viện đang ở bản mới nhất 58.1.9, chưa có bản sửa. Giữ FCM cho lúc cần đúng giờ hơn.
+  - Giảm tải phía app: `applyOnDevice` chỉ gọi native khi cài đặt hoặc múi giờ đổi, chạy lần lượt (đăng xuất luôn thắng một lần đặt lịch đang chờ); ghi nhớ trong bộ nhớ, nên mở app lạnh sẽ đặt lại một lần.
+- **Kết quả:** PR `fix/20-notification-broadcast-queue`.
+

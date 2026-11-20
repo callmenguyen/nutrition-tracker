@@ -11,11 +11,10 @@ import {
 } from "@/domain/reminder";
 import { useAuth } from "@/features/auth/auth-provider";
 import { saveFailureMessage } from "@/features/profile/profile";
+import { applyOnDevice } from "@/features/reminders/device";
 import {
-  cancelLogReminder,
   getPermission,
   requestPermission,
-  scheduleLogReminder,
 } from "@/features/reminders/scheduler";
 import { supabase } from "@/lib/supabase";
 
@@ -85,11 +84,11 @@ export async function saveLogReminder(r: LogReminder): Promise<SaveOutcome> {
 
 /**
  * Applies a saved setting to this device without holding up the screen. The saved setting is the
- * result the user sees; on some Android ROMs (seen on HyperOS) the scheduler's native reply comes
- * late or never, and the next sync (app start or foreground) applies the setting again.
+ * result the user sees; the native call can be slow on some Android ROMs (seen on HyperOS), and
+ * the next sync (app start or foreground) applies the setting again if this one failed.
  */
-function followOnDevice(task: () => Promise<void>): void {
-  task().catch((e: unknown) => {
+function followOnDevice(time: ReminderTime | null): void {
+  applyOnDevice(time).catch((e: unknown) => {
     console.warn("Log reminder schedule failed", e);
   });
 }
@@ -111,7 +110,7 @@ export async function turnOnLogReminder(
   if (permission !== "granted") return { kind: "blocked" };
   const saved = await saveLogReminder({ enabled: true, time });
   if (!saved.ok) return { kind: "error", message: saved.message };
-  followOnDevice(() => scheduleLogReminder(time));
+  followOnDevice(time);
   return { kind: "on" };
 }
 
@@ -124,9 +123,7 @@ export async function updateLogReminder(
 ): Promise<SaveOutcome> {
   const saved = await saveLogReminder(next);
   if (!saved.ok) return saved;
-  followOnDevice(() =>
-    next.enabled ? scheduleLogReminder(next.time) : cancelLogReminder(),
-  );
+  followOnDevice(next.enabled ? next.time : null);
   return saved;
 }
 
@@ -138,12 +135,10 @@ export async function syncLogReminder(
   r: LogReminder,
   stillWanted: () => boolean = () => true,
 ): Promise<void> {
-  // stillWanted: a sync that outlives its screen (e.g. sign-out mid-way) must not schedule again.
-  if (r.enabled && (await getPermission()) === "granted" && stillWanted()) {
-    await scheduleLogReminder(r.time);
-  } else {
-    await cancelLogReminder();
-  }
+  const allowed = r.enabled && (await getPermission()) === "granted";
+  // A sync that outlives its screen (e.g. sign-out mid-way) leaves the device to the sign-out.
+  if (!stillWanted()) return;
+  await applyOnDevice(allowed ? r.time : null);
 }
 
 /** The two writes, each refreshing the cached setting afterwards (saved or not). */
