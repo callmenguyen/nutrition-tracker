@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { Button } from "@/components/form";
+import { SystemBars } from "@/components/system-bars";
 import { ThemedText } from "@/components/themed-text";
 import { signOut } from "@/features/auth/auth";
 import {
@@ -110,6 +111,7 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <SystemBars />
         <AuthProvider>
           <RootNavigator />
         </AuthProvider>

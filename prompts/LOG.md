@@ -360,3 +360,12 @@ Mẫu một mục:
   - Theo review: đăng xuất tăng "thế hệ" để bỏ mọi lần đặt lịch được yêu cầu trước đó (kể cả lần lưu xong sau khi đăng xuất); lời gọi native quá 30 giây thì hàng đợi đi tiếp; key "đã áp" bị xoá trước mỗi lời gọi để lỗi không làm bỏ qua lần thử lại; `patch-package --error-on-fail`.
 - **Kết quả:** PR `fix/20-notification-broadcast-queue`.
 
+
+## 2026-11-21 · `/kessie-skills:proj build #54` · Thanh trạng thái khó đọc trên nền sáng
+- **Yêu cầu:** làm #54: icon thanh trạng thái gần như không thấy trên nền sáng ở mọi màn hình.
+- **Quyết định:**
+  - Component `SystemBars` (`expo-status-bar`) gắn ở layout gốc, chọn icon tối/sáng theo `useTheme().scheme`, cùng nguồn với bảng màu.
+  - Không thêm gì cho `Modal`: React Native 0.88 chép kiểu thanh trạng thái của Activity sang cửa sổ của Modal khi mở (`ReactModalHostView.updateSystemAppearance`).
+  - Ghi quy tắc "Readable Status Bar" vào DESIGN.md mục Elevation & Depth.
+  - Chưa xem được trên máy thật (điện thoại chưa kết nối); test Jest kiểm kiểu icon cho sáng, tối và khi hệ thống không báo.
+- **Kết quả:** PR `fix/54-status-bar-contrast`.
