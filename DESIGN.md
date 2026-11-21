@@ -241,6 +241,8 @@ Phẳng như giấy. Chiều sâu đến từ lớp tông (`paper` so với `pap
 ### Named Rules
 **The Flat Page Rule.** Thẻ, hàng và khối trên trang không có bóng và không có nền thẻ riêng. Chỉ FAB và sheet được nổi.
 
+**The Readable Status Bar Rule.** Thanh trạng thái trong suốt (edge-to-edge) và nằm trên nền trang, nên icon theo tông của trang: icon tối trên `paper` sáng, icon sáng trên trang tối. Đặt một lần ở layout gốc (`SystemBars`), theo cùng cài đặt sáng/tối với bảng màu; sheet và hộp thoại (`Modal`) tự lấy kiểu này khi mở (#54).
+
 ## Shapes
 
 Góc bo theo vai trò M3: ô nhập 4 dp, chip và khung gợi ý 8 dp, FAB 16 dp, nút 20 dp (viên thuốc ở chiều cao 48 dp), sheet bo hai góc trên 28 dp. Vạch dung lượng bo tròn hai đầu (bán kính bằng nửa chiều cao). Đường kẻ dòng món và viền khung gợi ý là hairline; viền ô nhập và chip 1 dp. Thanh kéo của sheet 32 × 4 dp.

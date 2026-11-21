@@ -24,6 +24,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 - Nền app: client Supabase với phiên được mã hoá (khoá trong SecureStore), TanStack Query (mutation không tự retry) ([#8](https://github.com/callmenguyen/nutrition-tracker/issues/8)).
 
 ### Sửa
+- Thanh trạng thái đọc được trên mọi màn hình: icon tối trên giao diện sáng, icon sáng trên giao diện tối, theo cài đặt sáng/tối của hệ thống, kể cả khi sheet ghi món hay hộp thoại đang mở ([#54](https://github.com/callmenguyen/nutrition-tracker/issues/54)).
 - Nhắc nhở trên Android: vá `expo-notifications` (patch-package) để các thao tác đặt lịch, hủy và lúc nhắc reo không phải xếp hàng sau broadcast của app khác. Trên một máy HyperOS, hàng đợi đó làm lịch có hiệu lực muộn vài phút. App cũng chỉ đặt lại lịch khi cài đặt thật sự đổi ([#20](https://github.com/callmenguyen/nutrition-tracker/issues/20)).
 
 ### Bảo trì
