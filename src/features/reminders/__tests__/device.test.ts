@@ -14,16 +14,18 @@ const at2000 = { hour: 20, minute: 0 };
 const at2100 = { hour: 21, minute: 0 };
 
 /** A fresh module per test: what was applied lives in module memory. */
-let applyOnDevice: (t: ReminderTime | null) => Promise<void>;
+type Device = typeof import("@/features/reminders/device");
+let applyOnDevice: Device["applyOnDevice"];
+let stopOnDevice: Device["stopOnDevice"];
+let deviceGeneration: Device["deviceGeneration"];
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockSchedule.mockResolvedValue();
   mockCancel.mockResolvedValue();
   jest.isolateModules(() => {
-    ({ applyOnDevice } = jest.requireActual<
-      typeof import("@/features/reminders/device")
-    >("@/features/reminders/device"));
+    ({ applyOnDevice, stopOnDevice, deviceGeneration } =
+      jest.requireActual<Device>("@/features/reminders/device"));
   });
 });
 
@@ -81,5 +83,39 @@ describe("applyOnDevice", () => {
     await applyOnDevice(at2000);
     spy.mockRestore();
     expect(mockSchedule).toHaveBeenCalledTimes(2);
+  });
+
+  it("REM-08: a schedule asked for before sign-out is dropped", async () => {
+    const askedIn = deviceGeneration();
+    await stopOnDevice();
+    await applyOnDevice(at2000, askedIn);
+    expect(mockSchedule).not.toHaveBeenCalled();
+    expect(mockCancel).toHaveBeenCalledTimes(1);
+    // After signing in again, new requests apply.
+    await applyOnDevice(at2000, deviceGeneration());
+    expect(mockSchedule).toHaveBeenCalledWith(at2000);
+  });
+
+  it("a native call that never answers times out and the queue moves on", async () => {
+    jest.useFakeTimers();
+    try {
+      mockSchedule.mockReturnValueOnce(new Promise<void>(() => {}));
+      const hung = applyOnDevice(at2000);
+      const next = applyOnDevice(null);
+      await jest.advanceTimersByTimeAsync(30_000);
+      await expect(hung).rejects.toThrow("timed out");
+      await next;
+      expect(mockCancel).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("a failure does not leave the old key: the old time is applied again", async () => {
+    await applyOnDevice(at2000);
+    mockSchedule.mockRejectedValueOnce(new Error("reply lost"));
+    await expect(applyOnDevice(at2100)).rejects.toThrow("reply lost");
+    await applyOnDevice(at2000);
+    expect(mockSchedule.mock.calls).toEqual([[at2000], [at2100], [at2000]]);
   });
 });

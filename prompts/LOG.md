@@ -357,5 +357,6 @@ Mẫu một mục:
   - Bằng chứng từ `dumpsys activity broadcasts` (chủ dự án chạy): các broadcast `NOTIFICATION_EVENT` của `expo-notifications` nằm trong hàng đợi broadcast nền, một cái chờ 3 phút 17 giây, xếp sau broadcast của app khác. Bật "Tự khởi động" không giải quyết được.
   - So với FCM (ADR-007, cần ADR mới, `device_tokens`, cron, Edge Function, 3–4 PR, cần mạng lúc nhắc), chọn patch: patch-package gắn `FLAG_RECEIVER_FOREGROUND` ở `doWork` và ở PendingIntent của alarm. Thư viện đang ở bản mới nhất 58.1.9, chưa có bản sửa. Giữ FCM cho lúc cần đúng giờ hơn.
   - Giảm tải phía app: `applyOnDevice` chỉ gọi native khi cài đặt hoặc múi giờ đổi, chạy lần lượt (đăng xuất luôn thắng một lần đặt lịch đang chờ); ghi nhớ trong bộ nhớ, nên mở app lạnh sẽ đặt lại một lần.
+  - Theo review: đăng xuất tăng "thế hệ" để bỏ mọi lần đặt lịch được yêu cầu trước đó (kể cả lần lưu xong sau khi đăng xuất); lời gọi native quá 30 giây thì hàng đợi đi tiếp; key "đã áp" bị xoá trước mỗi lời gọi để lỗi không làm bỏ qua lần thử lại; `patch-package --error-on-fail`.
 - **Kết quả:** PR `fix/20-notification-broadcast-queue`.
 

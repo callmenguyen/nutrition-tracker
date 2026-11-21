@@ -11,7 +11,7 @@ import {
 } from "@/domain/reminder";
 import { useAuth } from "@/features/auth/auth-provider";
 import { saveFailureMessage } from "@/features/profile/profile";
-import { applyOnDevice } from "@/features/reminders/device";
+import { applyOnDevice, deviceGeneration } from "@/features/reminders/device";
 import {
   getPermission,
   requestPermission,
@@ -87,8 +87,8 @@ export async function saveLogReminder(r: LogReminder): Promise<SaveOutcome> {
  * result the user sees; the native call can be slow on some Android ROMs (seen on HyperOS), and
  * the next sync (app start or foreground) applies the setting again if this one failed.
  */
-function followOnDevice(time: ReminderTime | null): void {
-  applyOnDevice(time).catch((e: unknown) => {
+function followOnDevice(time: ReminderTime | null, askedIn: number): void {
+  applyOnDevice(time, askedIn).catch((e: unknown) => {
     console.warn("Log reminder schedule failed", e);
   });
 }
@@ -104,13 +104,14 @@ export type TurnOnOutcome =
 export async function turnOnLogReminder(
   time: ReminderTime,
 ): Promise<TurnOnOutcome> {
+  const askedIn = deviceGeneration();
   const current = await getPermission();
   const permission =
     current === "granted" ? current : await requestPermission();
   if (permission !== "granted") return { kind: "blocked" };
   const saved = await saveLogReminder({ enabled: true, time });
   if (!saved.ok) return { kind: "error", message: saved.message };
-  followOnDevice(time);
+  followOnDevice(time, askedIn);
   return { kind: "on" };
 }
 
@@ -121,9 +122,10 @@ export async function turnOnLogReminder(
 export async function updateLogReminder(
   next: LogReminder,
 ): Promise<SaveOutcome> {
+  const askedIn = deviceGeneration();
   const saved = await saveLogReminder(next);
   if (!saved.ok) return saved;
-  followOnDevice(next.enabled ? next.time : null);
+  followOnDevice(next.enabled ? next.time : null, askedIn);
   return saved;
 }
 
@@ -135,10 +137,11 @@ export async function syncLogReminder(
   r: LogReminder,
   stillWanted: () => boolean = () => true,
 ): Promise<void> {
+  const askedIn = deviceGeneration();
   const allowed = r.enabled && (await getPermission()) === "granted";
   // A sync that outlives its screen (e.g. sign-out mid-way) leaves the device to the sign-out.
   if (!stillWanted()) return;
-  await applyOnDevice(allowed ? r.time : null);
+  await applyOnDevice(allowed ? r.time : null, askedIn);
 }
 
 /** The two writes, each refreshing the cached setting afterwards (saved or not). */
