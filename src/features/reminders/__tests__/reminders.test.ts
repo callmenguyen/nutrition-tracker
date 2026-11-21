@@ -29,6 +29,12 @@ jest.mock("@/features/reminders/scheduler", () => ({
   cancelLogReminder: () => mockCancel(),
 }));
 
+// The change-only queue is tested in device.test.ts; here it passes straight through.
+jest.mock("@/features/reminders/device", () => ({
+  applyOnDevice: (t: unknown) => (t ? mockSchedule(t) : mockCancel()),
+  deviceGeneration: () => 0,
+}));
+
 const at2100 = { hour: 21, minute: 0 };
 
 beforeEach(() => {

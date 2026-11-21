@@ -1,0 +1,23 @@
+diff --git a/node_modules/expo-notifications/android/src/main/java/expo/modules/notifications/service/NotificationsService.kt b/node_modules/expo-notifications/android/src/main/java/expo/modules/notifications/service/NotificationsService.kt
+index cdf1e6a..91010da 100644
+--- a/node_modules/expo-notifications/android/src/main/java/expo/modules/notifications/service/NotificationsService.kt
++++ b/node_modules/expo-notifications/android/src/main/java/expo/modules/notifications/service/NotificationsService.kt
+@@ -387,6 +387,9 @@ open class NotificationsService : BroadcastReceiver() {
+     fun doWork(context: Context, intent: Intent) {
+       findDesignatedBroadcastReceiver(context, intent)?.let {
+         intent.component = ComponentName(it.packageName, it.name)
++        // nutrition-tracker patch (#20): the background broadcast queue was minutes behind on a
++        // HyperOS phone, so schedule/cancel/present waited minutes. Foreground queue is prompt.
++        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+         context.sendBroadcast(intent)
+         return
+       }
+@@ -428,6 +431,8 @@ open class NotificationsService : BroadcastReceiver() {
+         }
+         intent.putExtra(EVENT_TYPE_KEY, TRIGGER_TYPE)
+         intent.putExtra(IDENTIFIER_KEY, identifier)
++        // nutrition-tracker patch (#20): the alarm's broadcast also skips the slow background queue.
++        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+       }
+ 
+       // We're defaulting to the behaviour prior API 31 (mutable) even though Android recommends immutability
