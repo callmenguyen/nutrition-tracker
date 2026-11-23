@@ -29,6 +29,7 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 
 ### Bảo trì
 - E2E chạy trên mock backend Node.js trong bộ nhớ (`e2e/mock-backend/`) thay cho Supabase cloud: mỗi lượt bắt đầu với dữ liệu sạch và tài khoản test mới, email xác nhận và đặt lại mật khẩu được kiểm qua hộp thư giả; mock có test Jest dùng `supabase-js` thật (ADR-016, [#50](https://github.com/callmenguyen/nutrition-tracker/issues/50)).
+- Cập nhật phụ thuộc: nhóm gói Expo lên bản patch mới nhất của SDK 58 và `expo-web-browser` lên `~58.1.0` theo SDK (`npx expo install --check` sạch); `@supabase/supabase-js` 2.119, `@tanstack/react-query` 5.108, `@hookform/resolvers` 7.0.7; `appium-python-client` 6.1.7 cho E2E; action `supabase/setup-cli` v3 trong CI. Dependabot không mở PR cho `@react-native-async-storage/*` nữa, vì SDK 58 ghim bản 2.2.0 ([#67](https://github.com/callmenguyen/nutrition-tracker/issues/67)).
 - Khung repo: Expo SDK 58 (TypeScript, Expo Router, 3 tab Hôm nay · Biểu đồ · Cài đặt chưa có tính năng), Supabase local với test RLS, Jest, ESLint/Prettier, E2E Appium (Python/uv) cùng các script build APK, Metro và chạy test, CI, Dependabot.
 
 ### Ghi chú nâng cấp

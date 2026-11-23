@@ -369,3 +369,11 @@ Mẫu một mục:
   - Ghi quy tắc "Readable Status Bar" vào DESIGN.md mục Elevation & Depth.
   - Chưa xem được trên máy thật (điện thoại chưa kết nối); test Jest kiểm kiểu icon cho sáng, tối và khi hệ thống không báo.
 - **Kết quả:** PR `fix/54-status-bar-contrast`.
+
+## 2026-11-23 · `/kessie-skills:proj deps` · Xử lý PR Dependabot quá hạn
+- **Yêu cầu:** rà 7 PR Dependabot mở lâu; chủ dự án đồng ý cả đề xuất.
+- **Quyết định:**
+  - Merge #41 (`supabase/setup-cli` v3), #56 (`appium-python-client`), #60 (nhóm Expo, bản patch SDK 58), #45 (`supabase-js`), #44 (`react-query`), #48 (`@hookform/resolvers`), lần lượt từng PR sau khi cập nhật theo `main` và CI xanh. #60 có gói native nên cần build lại APK.
+  - Đóng #36 (`async-storage` 3.x): SDK 58 ghim 2.2.0, bản 3.x bỏ mock Jest. Thêm `ignore` cho `@react-native-async-storage/*` vì rule `react-native-*` không khớp tên gói này.
+  - Nâng `expo-web-browser` lên `~58.1.0` bằng `npx expo install` để `expo install --check` sạch (Dependabot bỏ qua bản minor của gói Expo).
+- **Kết quả:** issue #67, PR `chore/67-deps-async-storage-web-browser`.
