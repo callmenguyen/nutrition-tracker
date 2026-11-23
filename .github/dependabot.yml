@@ -28,6 +28,7 @@ updates:
       - dependency-name: "react-native"
       - dependency-name: "react-native-*"
       - dependency-name: "@react-native/*"
+      - dependency-name: "@react-native-async-storage/*" # SDK 58 pins 2.2.0 (#36, #67)
       - dependency-name: "@types/react"
       # Expo packages: patch updates within the SDK line are fine; minor/major come with an SDK bump.
       - dependency-name: "expo"
