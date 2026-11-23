@@ -37,5 +37,6 @@ Mọi thay đổi đáng chú ý của Nutrition Tracker được ghi tại đâ
 - Thêm phụ thuộc native `@shopify/react-native-skia` và `victory-native`: cần build lại APK.
 - Edge Function mới `delete-account` cần deploy lên Supabase cloud (`npx supabase functions deploy delete-account`) trước khi phát hành bản có nút Xoá tài khoản.
 - Thêm phụ thuộc native `expo-notifications` (quyền `POST_NOTIFICATIONS`, kênh "Nhắc ghi bữa ăn"): cần build lại APK.
+- Nâng các gói native Expo lên bản patch mới nhất của SDK 58 và `expo-web-browser` lên `~58.1.0`: cần build lại APK ([#67](https://github.com/callmenguyen/nutrition-tracker/issues/67)).
 
 [Unreleased]: https://github.com/callmenguyen/nutrition-tracker/commits/main
